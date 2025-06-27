@@ -1,0 +1,5 @@
+{
+  "name": "BOM & Costing Manager",
+  "description": "An application for managing Bill of Materials (BOM) and calculating raw material costs for plastic injection molded products.",
+  "requestFramePermissions": []
+}
