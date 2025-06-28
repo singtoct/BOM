@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { View } from '../types';
-import { BoxIcon, CalculatorIcon, ChartBarIcon } from './icons';
+import { BoxIcon, CalculatorIcon } from './icons';
 
 interface HeaderProps {
   setView: React.Dispatch<React.SetStateAction<View>>;
@@ -18,13 +18,6 @@ const Header = ({ setView }: HeaderProps) => {
              </div>
             <div className="hidden md:block">
               <div className="ml-10 flex items-baseline space-x-4">
-                 <button
-                  onClick={() => setView({ type: 'dashboard' })}
-                  className="text-gray-600 hover:bg-gray-100 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium flex items-center"
-                >
-                  <ChartBarIcon className="h-5 w-5 mr-2" />
-                  แดชบอร์ด
-                </button>
                 <button
                   onClick={() => setView({ type: 'products' })}
                   className="text-gray-600 hover:bg-gray-100 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"

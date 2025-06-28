@@ -1,5 +1,4 @@
-
-import React, { useState, useMemo } from 'react';
+import React, { useState } from 'react';
 import { useBom } from '../context/BomContext';
 import { Material } from '../types';
 import Modal from '../components/Modal';
@@ -14,16 +13,10 @@ const MaterialsPage = () => {
   const [pasteData, setPasteData] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
 
-  const filteredMaterials = useMemo(() => {
-    if (!searchTerm) {
-      return state.materials;
-    }
-    const lowercasedTerm = searchTerm.toLowerCase();
-    return state.materials.filter(material =>
-      material.name.toLowerCase().includes(lowercasedTerm) ||
-      material.id.toLowerCase().includes(lowercasedTerm)
-    );
-  }, [state.materials, searchTerm]);
+  const filteredMaterials = state.materials.filter(material =>
+    material.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    material.id.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   const handleOpenModal = (material: Material | null = null) => {
     setEditingMaterial(material);
@@ -103,26 +96,29 @@ const MaterialsPage = () => {
 
   return (
     <div className="container mx-auto">
-      <div className="flex justify-between items-center mb-6 flex-wrap gap-4">
+      <div className="flex justify-between items-center mb-4">
         <h1 className="text-2xl font-bold text-gray-800">จัดการวัตถุดิบ (Materials)</h1>
-        <div className="flex items-center gap-4">
-            <div className="relative">
-                <input
-                    type="text"
-                    placeholder="ค้นหาวัตถุดิบ..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full md:w-64 pl-10 pr-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-                <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-            </div>
-            <button
-                onClick={() => handleOpenModal()}
-                className="flex items-center bg-blue-600 text-white px-4 py-2 rounded-lg shadow hover:bg-blue-700 transition-colors"
-            >
-                <PlusIcon className="h-5 w-5 mr-2" />
-                เพิ่มวัตถุดิบ
-            </button>
+        <button
+          onClick={() => handleOpenModal()}
+          className="flex items-center bg-blue-600 text-white px-4 py-2 rounded-lg shadow hover:bg-blue-700 transition-colors"
+        >
+          <PlusIcon className="h-5 w-5 mr-2" />
+          เพิ่มวัตถุดิบ
+        </button>
+      </div>
+
+      <div className="mb-4">
+        <div className="relative">
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <SearchIcon className="h-5 w-5 text-gray-400" />
+          </div>
+          <input
+            type="text"
+            placeholder="ค้นหาด้วยชื่อ หรือ รหัส..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+          />
         </div>
       </div>
 
@@ -161,13 +157,6 @@ const MaterialsPage = () => {
                   </td>
                 </tr>
               ))}
-               {filteredMaterials.length === 0 && (
-                <tr>
-                    <td colSpan={5} className="text-center py-10 text-gray-500">
-                         {searchTerm ? `ไม่พบวัตถุดิบที่ตรงกับคำค้นหา "${searchTerm}"` : "ไม่มีข้อมูลวัตถุดิบ"}
-                    </td>
-                </tr>
-              )}
             </tbody>
           </table>
         </div>

@@ -2,22 +2,30 @@ import React, { useState, useMemo } from 'react';
 import * as XLSX from 'xlsx';
 import { useBom } from '../context/BomContext';
 import { CalculatorIcon, FileDownIcon } from '../components/icons';
-import { ProductionOrder, CalculationResult } from '../types';
+
+interface CalculationResult {
+  materialId: string;
+  materialName: string;
+  materialUnit: string;
+  materialImageUrl?: string;
+  pricePerUnit: number;
+  requiredQuantity: number;
+  stockQuantity: number;
+  shortage: number;
+}
 
 const ProductionCalculatorPage = () => {
-  const { state, dispatch } = useBom();
+  const { state } = useBom();
   const { products, materials, bomComponents } = state;
 
   const [productionPlan, setProductionPlan] = useState<Record<string, number>>({});
   const [results, setResults] = useState<CalculationResult[] | null>(null);
-  const [isPlanSaved, setIsPlanSaved] = useState(false);
 
   const handlePlanChange = (productId: string, quantity: number) => {
     setProductionPlan(prev => ({
       ...prev,
       [productId]: Math.max(0, quantity), // Ensure quantity is not negative
     }));
-    setIsPlanSaved(false);
   };
 
   const handleCalculate = () => {
@@ -57,7 +65,6 @@ const ProductionCalculatorPage = () => {
       .sort((a,b) => b.shortage - a.shortage); // Sort by shortage descending
 
     setResults(calculatedResults);
-    setIsPlanSaved(false);
   };
 
   const totalPurchaseCost = useMemo(() => {
@@ -123,32 +130,6 @@ const ProductionCalculatorPage = () => {
     XLSX.writeFile(workbook, "รายการจัดซื้อวัตถุดิบ.xlsx");
   };
 
-  const handleSavePlan = () => {
-    if (!results || Object.keys(productionPlan).length === 0) {
-        alert("กรุณาคำนวณแผนการผลิตก่อนทำการบันทึก");
-        return;
-    }
-
-    const planItems = Object.entries(productionPlan)
-                            .filter(([, quantity]) => quantity > 0)
-                            .map(([productId, quantity]) => ({ productId, quantity }));
-    
-    if (planItems.length === 0) {
-        alert("แผนการผลิตว่างเปล่า ไม่สามารถบันทึกได้");
-        return;
-    }
-    
-    const newOrder: ProductionOrder = {
-        id: new Date().toISOString(),
-        createdAt: new Date().toISOString(),
-        items: planItems,
-        results: results,
-    };
-
-    dispatch({ type: 'ADD_PRODUCTION_ORDER', payload: newOrder });
-    setIsPlanSaved(true);
-  };
-
 
   return (
     <div className="container mx-auto">
@@ -199,7 +180,7 @@ const ProductionCalculatorPage = () => {
            <h2 className="text-xl font-semibold text-gray-800 mb-4">2. ผลลัพธ์</h2>
            {results ? (
              <div className="space-y-3">
-                 <div className="max-h-[50vh] overflow-y-auto pr-2">
+                 <div className="max-h-[55vh] overflow-y-auto pr-2">
                      <table className="min-w-full divide-y divide-gray-200">
                          <thead className="bg-gray-50 sticky top-0">
                              <tr>
@@ -236,7 +217,7 @@ const ProductionCalculatorPage = () => {
                         <h3 className="text-lg font-semibold text-gray-700">สรุปการจัดซื้อ</h3>
                         <button
                             onClick={handleExportExcel}
-                            className="flex items-center bg-green-600 text-white px-3 py-1.5 rounded-lg shadow hover:bg-green-700 transition-colors text-sm font-medium disabled:bg-gray-400 disabled:cursor-not-allowed"
+                            className="flex items-center bg-green-600 text-white px-3 py-1.5 rounded-lg shadow hover:bg-green-700 transition-colors text-sm font-medium"
                             disabled={!results || results.filter(r => r.shortage > 0).length === 0}
                          >
                             <FileDownIcon className="h-4 w-4 mr-2" />
@@ -247,15 +228,6 @@ const ProductionCalculatorPage = () => {
                          <span className="font-bold text-yellow-800">รวมค่าใช้จ่ายที่ต้องซื้อเพิ่ม:</span>
                          <span className="text-2xl font-bold text-yellow-900">{totalPurchaseCost.toLocaleString('th-TH', { style: 'currency', currency: 'THB' })}</span>
                      </div>
-                      <div className="mt-4">
-                        <button
-                          onClick={handleSavePlan}
-                          disabled={isPlanSaved || !results}
-                          className="w-full flex items-center justify-center bg-teal-600 text-white px-6 py-3 rounded-lg shadow hover:bg-teal-700 transition-colors text-lg font-semibold disabled:bg-gray-400 disabled:cursor-not-allowed"
-                        >
-                          {isPlanSaved ? '✓ บันทึกแผนการผลิตแล้ว' : 'บันทึกแผนการผลิต'}
-                        </button>
-                      </div>
                  </div>
              </div>
            ) : (

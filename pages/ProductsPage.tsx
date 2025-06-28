@@ -1,5 +1,4 @@
-
-import React, { useState, useMemo } from 'react';
+import React, { useState } from 'react';
 import { useBom } from '../context/BomContext';
 import { Product, View } from '../types';
 import Modal from '../components/Modal';
@@ -87,16 +86,10 @@ const ProductsPage = ({ setView }: ProductsPageProps) => {
   const [viewMode, setViewMode] = useState<ViewMode>('large');
   const [searchTerm, setSearchTerm] = useState('');
 
-  const filteredProducts = useMemo(() => {
-    if (!searchTerm) {
-      return state.products;
-    }
-    const lowercasedTerm = searchTerm.toLowerCase();
-    return state.products.filter(product =>
-      product.name.toLowerCase().includes(lowercasedTerm) ||
-      product.id.toLowerCase().includes(lowercasedTerm)
-    );
-  }, [state.products, searchTerm]);
+  const filteredProducts = state.products.filter(product =>
+    product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    product.id.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   const handleOpenModal = () => {
     setFormData({ name: '', imageUrl: '', sellingPrice: 0 });
@@ -176,31 +169,31 @@ const ProductsPage = ({ setView }: ProductsPageProps) => {
           เพิ่มสินค้า
         </button>
       </div>
-      
+
        <div className="bg-white p-2 rounded-lg shadow-sm mb-6 flex items-center justify-between flex-wrap gap-4">
-          <div className="relative flex-grow min-w-[250px]">
+           <div className="relative flex-grow max-w-xs">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <SearchIcon className="h-5 w-5 text-gray-400" />
+              </div>
               <input
                   type="text"
-                  placeholder="ค้นหาสินค้า (ชื่อหรือรหัส)..."
+                  placeholder="ค้นหาด้วยชื่อ หรือ รหัส..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
               />
-              <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
           </div>
-          <div className="flex items-center">
-              <h3 className="text-md font-semibold text-gray-700 mr-4 hidden sm:block">มุมมอง</h3>
-              <div className="flex items-center space-x-1 bg-gray-100 p-1 rounded-lg">
-                <button title="Large Grid View" onClick={() => setViewMode('large')} className={`p-2 rounded-md ${viewMode === 'large' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500 hover:bg-gray-200'}`}>
-                    <GridIcon className="h-5 w-5" />
-                </button>
-                <button title="Small Grid View" onClick={() => setViewMode('small')} className={`p-2 rounded-md ${viewMode === 'small' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500 hover:bg-gray-200'}`}>
-                    <LayoutGridIcon className="h-5 w-5" />
-                </button>
-                <button title="List View" onClick={() => setViewMode('list')} className={`p-2 rounded-md ${viewMode === 'list' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500 hover:bg-gray-200'}`}>
-                    <ListIcon className="h-5 w-5" />
-                </button>
-              </div>
+          <div className="flex items-center space-x-1">
+             <span className="text-sm font-semibold text-gray-600 mr-2">มุมมอง:</span>
+             <button title="Large Grid View" onClick={() => setViewMode('large')} className={`p-2 rounded-md ${viewMode === 'large' ? 'bg-blue-100 text-blue-600' : 'text-gray-500 hover:bg-gray-100'}`}>
+                <GridIcon className="h-5 w-5" />
+            </button>
+            <button title="Small Grid View" onClick={() => setViewMode('small')} className={`p-2 rounded-md ${viewMode === 'small' ? 'bg-blue-100 text-blue-600' : 'text-gray-500 hover:bg-gray-100'}`}>
+                <LayoutGridIcon className="h-5 w-5" />
+            </button>
+            <button title="List View" onClick={() => setViewMode('list')} className={`p-2 rounded-md ${viewMode === 'list' ? 'bg-blue-100 text-blue-600' : 'text-gray-500 hover:bg-gray-100'}`}>
+                <ListIcon className="h-5 w-5" />
+            </button>
           </div>
       </div>
 
@@ -208,11 +201,6 @@ const ProductsPage = ({ setView }: ProductsPageProps) => {
         {filteredProducts.map(product => (
           <ProductCard key={product.id} product={product} onClick={() => setView({ type: 'product-detail', productId: product.id })} viewMode={viewMode}/>
         ))}
-        {filteredProducts.length === 0 && searchTerm && (
-          <div className="col-span-full text-center py-10 text-gray-500">
-            ไม่พบสินค้าที่ตรงกับคำค้นหา "{searchTerm}"
-          </div>
-        )}
       </div>
 
       <Modal isOpen={isModalOpen} onClose={handleCloseModal} title="เพิ่มสินค้าใหม่">

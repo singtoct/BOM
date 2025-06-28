@@ -6,10 +6,9 @@ import ProductsPage from './pages/ProductsPage';
 import MaterialsPage from './pages/MaterialsPage';
 import ProductDetailPage from './pages/ProductDetailPage';
 import ProductionCalculatorPage from './pages/ProductionCalculatorPage';
-import DashboardPage from './pages/DashboardPage';
 
 const App = () => {
-  const [view, setView] = useState<View>({ type: 'dashboard' });
+  const [view, setView] = useState<View>({ type: 'products' });
 
   const renderView = () => {
     switch (view.type) {
@@ -21,10 +20,8 @@ const App = () => {
         return <ProductDetailPage productId={view.productId} setView={setView} />;
       case 'calculator':
         return <ProductionCalculatorPage />;
-      case 'dashboard':
-        return <DashboardPage />;
       default:
-        return <DashboardPage />;
+        return <ProductsPage setView={setView} />;
     }
   };
 

@@ -1,10 +1,167 @@
 
 import React, { createContext, useReducer, useContext, ReactNode, useEffect } from 'react';
-import { State, Action, Material, Product, BomComponent, ProductionOrder } from '../types';
+import { State, Action, Material, Product, BomComponent } from '../types';
 
 const LOCAL_STORAGE_KEY = 'bom-app-data';
 
-const newMaterialsFromImage: Omit<Material, 'imageUrl' | 'stockQuantity'>[] = [
+// --- Data from User ---
+const userProductData = [
+    { name: 'บล็อคลอย G-Power 2x4', weight: 45.80, price: 3.69 },
+    { name: 'บล็อคลอย G-Power 4x4', weight: 62.60, price: 5.08 },
+    { name: 'บล็อคลอย G-Power 2x4B', weight: 45.80, price: 3.70 },
+    { name: 'บล็อคลอย G-Power 4x4B', weight: 62.60, price: 5.20 },
+    { name: 'บล็อคลอย CT 2x4', weight: 45.80, price: 3.83 },
+    { name: 'บล็อคลอย CT 4x4', weight: 62.60, price: 5.08 },
+    { name: 'บล็อคลอย CT 2x4B', weight: 45.80, price: 3.70 },
+    { name: 'บล็อคลอย CT 4x4B', weight: 62.60, price: 5.20 },
+    { name: 'ฝาหน้ากาก CT A-101', weight: 18.50, price: 3.77 },
+    { name: 'ฝาหน้ากาก CT A-101B', weight: 18.50, price: 0 },
+    { name: 'ฝาหน้ากาก CT A-102', weight: 17.00, price: 3.70 },
+    { name: 'ฝาหน้ากาก CT A-102B', weight: 17.00, price: 0 },
+    { name: 'ฝาหน้ากาก CT A-103', weight: 15.50, price: 3.57 },
+    { name: 'ฝาหน้ากาก CT A-103B', weight: 15.50, price: 3.35 },
+    { name: 'ฝาหน้ากาก CT A-1022', weight: 17.00, price: 3.92 },
+    { name: 'ฝาหน้ากาก CT A-1022B', weight: 17.00, price: 0 },
+    { name: 'ฝาหน้ากาก CT A-104', weight: 26.00, price: 4.92 },
+    { name: 'ฝาหน้ากาก CT A-104B', weight: 26.00, price: 0 },
+    { name: 'ฝาหน้ากาก CT A-106', weight: 21.80, price: 5.02 },
+    { name: 'ฝาหน้ากาก CT A-106B', weight: 21.80, price: 0 },
+    { name: 'บล็อคลอย BEWON  2x4', weight: 45.80, price: 3.83 },
+    { name: 'บล็อคลอย BEWON 4x4', weight: 62.60, price: 5.32 },
+    { name: 'ฝาหน้ากาก BEWON 201', weight: 18.50, price: 3.68 },
+    { name: 'ฝาหน้ากาก BEWON 202', weight: 17.00, price: 3.60 },
+    { name: 'ฝาหน้ากาก BEWON 203', weight: 15.50, price: 3.57 },
+    { name: 'ฝาหน้ากาก BEWON 222', weight: 17.00, price: 3.84 },
+    { name: 'ฝาหน้ากาก BEWON 604', weight: 26.00, price: 5.29 },
+    { name: 'ฝาหน้ากาก BEWON 606', weight: 21.80, price: 5.22 },
+    { name: 'ฝาเทาใส CHONG-2  PC', weight: 41.00, price: 4.01 },
+    { name: 'ฝาเทาใส CHONG-4  PC', weight: 69.00, price: 6.73 },
+    { name: 'ฝาเทาใส CHONG-6  PC', weight: 81.00, price: 8.78 },
+    { name: 'ฝาเทาใส CHONG-8  PC', weight: 116.00, price: 10.58 },
+    { name: 'ฝาเทาใส CHONG-10  PC', weight: 118.00, price: 12.06 },
+    { name: 'ฝาขาว CHONG-2  ABS', weight: 95.00, price: 6.75 },
+    { name: 'ฝาขาว CHONG-4  ABS', weight: 141.00, price: 9.85 },
+    { name: 'ฝาขาว CHONG-6  ABS', weight: 167.00, price: 11.62 },
+    { name: 'ฝาขาว CHONG-8  ABS', weight: 188.00, price: 13.04 },
+    { name: 'ฝาขาว CHONG-10  ABS', weight: 211.00, price: 14.60 },
+    { name: 'CTU ฝา NEW 2 ดำใส PC', weight: 40.00, price: 4.74 },
+    { name: 'CTU ฝา NEW 4 ดำใส PC', weight: 55.00, price: 5.97 },
+    { name: 'CTU ฝา NEW 6 ดำใส PC', weight: 65.00, price: 6.54 },
+    { name: 'CTU ฝา NEW 8 ดำใส PC', weight: 75.00, price: 7.40 },
+    { name: 'CTU ฝา NEW 10 ดำใส PC', weight: 85.00, price: 10.00 },
+    { name: 'CTU ฝา NEW 2 สีขาว PC', weight: 105.00, price: 8.80 },
+    { name: 'CTU ฝา NEW 4 สีขาว PC', weight: 170.00, price: 14.87 },
+    { name: 'CTU ฝา NEW 6 สีขาว PC', weight: 185.00, price: 16.70 },
+    { name: 'CTU ฝา NEW 8 สีขาว PC', weight: 210.00, price: 17.96 },
+    { name: 'CTU ฝา NEW 10 สีขาว PC', weight: 240.00, price: 23.53 },
+    { name: 'อุปกร์ฝาใส่ตู้', weight: 1.10, price: 0.44 },
+    { name: 'ฝาใส   M 4', weight: 75.00, price: 6.73 },
+    { name: 'ฝาใส   M 6', weight: 89.00, price: 7.88 },
+    { name: 'ฝาใส   M 8', weight: 110.00, price: 9.60 },
+    { name: 'ฝาใส   M 10', weight: 122.00, price: 10.58 },
+    { name: 'ฝาใส   M 12', weight: 123.00, price: 11.16 },
+    { name: 'ฝาใสเทา   M 4', weight: 75.00, price: 12.74 },
+    { name: 'ฝาใสเทา   M 6', weight: 89.00, price: 14.84 },
+    { name: 'ฝาใสเทา   M 8', weight: 110.00, price: 17.97 },
+    { name: 'ฝาใสเทา   M 10', weight: 122.00, price: 19.77 },
+    { name: 'ฝาใสเทา   M 12', weight: 123.00, price: 20.82 },
+    { name: 'ชุดล็อคเลือนเลื่อนเปิด-ปิด     K1', weight: 2.80, price: 0.58 },
+    { name: 'ชุดฐานล็อคเลือนเลื่อนเปิด-ปิด  K2', weight: 6.90, price: 0.77 },
+    { name: 'ฐานรองเบเกอร์เมน    R1', weight: 65.00, price: 5.05 },
+    { name: 'ฝาบิดบัสบาร์เมน         R1-1', weight: 6.00, price: 0.92 },
+    { name: 'ฐานรองเบรคย่อย  T1', weight: 15.80, price: 1.97 },
+    { name: 'ฝาปิดบัสบาร์ 2 ช่อง T1-1', weight: 1.60, price: 0.36 },
+    { name: 'ขาล็อคข้อพับเปิด-ปิดฝา  S1', weight: 0.80, price: 0.33 },
+    { name: 'ขาพับเปิด-ปิดฝา               S2', weight: 1.30, price: 0.35 },
+    { name: 'ฐานรองเบเกอร์    4  ช่อง  C1', weight: 45.20, price: 3.65 },
+    { name: 'ฝาปิดบัสบาร์ C1-1', weight: 3.80, price: 0.56 },
+    { name: 'ฐานรองขั้วต่อสาย   J1', weight: 12.80, price: 1.01 },
+    { name: 'ฐานรองขั้วต่อสาย   J2', weight: 21.20, price: 1.63 },
+    { name: ' GNT  เบรคเกอร์', weight: 42.00, price: 4.53 },
+    { name: 'CWS-111  ฝาครอบด้านหน้า', weight: 2.60, price: 0.49 },
+    { name: 'CWS-111  ฝาครอบด้านหน้า สีดำ', weight: 2.60, price: 0 },
+    { name: 'CWS-111  ฝาครอบด้านหลัง ', weight: 6.70, price: 0.78 },
+    { name: 'CWS-111  ชุดขาล็อคฝาครอบ', weight: 0.35, price: 0.30 },
+    { name: 'CWS-111  ชุดล็อคขาเสียบ 2 ต่อ', weight: 0.25, price: 0.32 },
+    { name: 'CWS-111  รองฝาเปิด-ปิดด้านในใหญ่', weight: 3.90, price: 0.30 },
+    { name: 'CWS-111  รองฝาเปิด-ปิดด้านในเล็ก', weight: 2.70, price: 0.30 },
+    { name: 'CWS-121  ฝาครอบด้านหน้า', weight: 2.60, price: 0.49 },
+    { name: 'CWS-121  ฝาครอบด้านหน้า สีดำ', weight: 2.60, price: 0 },
+    { name: 'CWS-121  ฝาครอบด้านหลัง ', weight: 6.70, price: 0.78 },
+    { name: 'CWS-121  ชุดขาล็อคฝาครอบ', weight: 0.35, price: 0.30 },
+    { name: 'CWS-121  ชุดล็อคขาเสียบสาย 2 ต่อ', weight: 0.25, price: 0.32 },
+    { name: 'CWS-121  รองฝาเปิด-ปิดด้านในใหญ่', weight: 3.90, price: 0.30 },
+    { name: 'CWS-121  รองฝาเปิด-ปิดด้านในเล็ก', weight: 2.70, price: 0.30 },
+    { name: 'CPS-113  ฝาครอบด้านหน้า', weight: 11.20, price: 0.97 },
+    { name: 'CPS-113  ฝาครอบด้านหลัง ', weight: 13.20, price: 1.02 },
+    { name: 'CPS-113  ชุดขาล็อคฝาครอบ', weight: 0.60, price: 0.48 },
+    { name: 'ชุดขาล็อคขาเสียบสาย  L', weight: 0.40, price: 0.30 },
+    { name: 'ชุดขาล็อคขาเสียบสาย  N', weight: 0.40, price: 0.30 },
+    { name: 'ชุดล็อคขาเสียบสาย G', weight: 0.35, price: 0.29 },
+    { name: 'CPS-116  ฝาครอบด้านหน้า', weight: 17.40, price: 1.48 },
+    { name: 'CPS-116  ฝาครอบด้านหลัง ', weight: 18.30, price: 1.54 },
+    { name: 'CPS-116  ชุดขาล็อคฝาครอบ', weight: 0.60, price: 0.48 },
+    { name: 'CPS-112  ฝาครอบด้านหน้า', weight: 5.60, price: 0.63 },
+    { name: 'CPS-112  ฝาครอบด้านหลัง ', weight: 6.70, price: 0.78 },
+    { name: 'CPS-112  ชุดขาล็อคฝาครอบ', weight: 0.55, price: 0.38 },
+    { name: 'ชุดล็อคขาเสียบสาย', weight: 0.35, price: 0 },
+    { name: 'รองครอบด้านใน', weight: 0.42, price: 0 },
+    { name: 'บล็อคฝัง 2x4 สีดำ', weight: 0, price: 0 },
+    { name: 'บล็อคฝัง 4x4 สีดำ', weight: 0, price: 0 },
+    { name: 'บล็อคฝัง 2x4 สีส้ม', weight: 0, price: 0 },
+    { name: 'บล็อคฝัง 4x4 สีส้ม', weight: 0, price: 0 },
+];
+
+const generateInitialData = () => {
+  const products: Product[] = [];
+  const bomComponents: BomComponent[] = [];
+
+  userProductData.forEach((item, index) => {
+    if (!item.name) return;
+    const productId = `USER-PROD-${String(index + 1).padStart(3, '0')}`;
+    
+    products.push({
+      id: productId,
+      name: item.name.trim(),
+      imageUrl: `https://picsum.photos/seed/${productId}/400/300`,
+      totalMaterialCost: 0,
+      sellingPrice: item.price,
+    });
+
+    if (item.weight > 0) {
+      let materialId = 'IMG-MAT-093'; // Default to HIPS
+      const upperName = item.name.toUpperCase();
+      
+      if (upperName.includes('PC')) {
+        if (upperName.includes('ดำ')) materialId = 'IMG-MAT-090'; // PC Black
+        else if (upperName.includes('เทา')) materialId = 'IMG-MAT-087'; // PC Grey
+        else if (upperName.includes('ขาว')) materialId = 'IMG-MAT-088'; // PC White
+        else materialId = 'IMG-MAT-086'; // PC Clear
+      } else if (upperName.includes('ABS')) {
+        if (upperName.includes('ดำ')) materialId = 'IMG-MAT-085'; // ABS Black
+        else materialId = 'IMG-MAT-083'; // ABS White
+      } else if (upperName.includes('POM')) {
+        materialId = 'IMG-MAT-095'; // POM
+      } else if (upperName.includes('HIPS')) {
+         if (upperName.includes('ดำ')) materialId = 'IMG-MAT-094'; // HIPS Black
+         else materialId = 'IMG-MAT-093'; // HIPS
+      }
+
+      bomComponents.push({
+        id: `${productId}-${materialId}`,
+        productId: productId,
+        materialId: materialId,
+        quantity: item.weight / 1000, // convert g to kg
+      });
+    }
+  });
+
+  return { products, bomComponents };
+};
+
+const { products: newProducts, bomComponents: newBomComponents } = generateInitialData();
+
+const materialMasterList: Omit<Material, 'imageUrl' | 'stockQuantity'>[] = [
   { id: 'IMG-MAT-001', name: 'พลาสติกแพค BOX Gpower 4x4', unit: 'กิโลกรัม', pricePerUnit: 104.4 },
   { id: 'IMG-MAT-002', name: 'พลาสติกแพค BOX Gpower 2x4', unit: 'กิโลกรัม', pricePerUnit: 104.4 },
   { id: 'IMG-MAT-003', name: 'พลาสติกแพค BOX Gpower 4x4 ดำ', unit: 'กิโลกรัม', pricePerUnit: 104.4 },
@@ -104,131 +261,16 @@ const newMaterialsFromImage: Omit<Material, 'imageUrl' | 'stockQuantity'>[] = [
   { id: 'IMG-MAT-097', name: 'เม็ดพุก', unit: 'กิโลกรัม', pricePerUnit: 40 },
   { id: 'IMG-MAT-098', name: 'สกรู P# 7x1"', unit: 'ชิ้น', pricePerUnit: 0.06 },
   { id: 'IMG-MAT-099', name: 'สกรู P# 7x1/2"', unit: 'ชิ้น', pricePerUnit: 0.08 },
-];
-
-const newProductsFromImage: Product[] = [
-    { id: 'IMG-PROD-101', name: 'บล็อคลอย G-Power 2x4', imageUrl: 'https://picsum.photos/seed/IMG-PROD-101/400/300', totalMaterialCost: 0, sellingPrice: 0 },
-    { id: 'IMG-PROD-102', name: 'บล็อคลอย G-Power 4x4', imageUrl: 'https://picsum.photos/seed/IMG-PROD-102/400/300', totalMaterialCost: 0, sellingPrice: 0 },
-    { id: 'IMG-PROD-103', name: 'บล็อคลอย G-Power 2x4B', imageUrl: 'https://picsum.photos/seed/IMG-PROD-103/400/300', totalMaterialCost: 0, sellingPrice: 0 },
-    { id: 'IMG-PROD-104', name: 'บล็อคลอย G-Power 4x4B', imageUrl: 'https://picsum.photos/seed/IMG-PROD-104/400/300', totalMaterialCost: 0, sellingPrice: 0 },
-    { id: 'IMG-PROD-105', name: 'บล็อคลอย CT 2x4', imageUrl: 'https://picsum.photos/seed/IMG-PROD-105/400/300', totalMaterialCost: 0, sellingPrice: 0 },
-    { id: 'IMG-PROD-106', name: 'บล็อคลอย CT 4x4', imageUrl: 'https://picsum.photos/seed/IMG-PROD-106/400/300', totalMaterialCost: 0, sellingPrice: 0 },
-    { id: 'IMG-PROD-107', name: 'บล็อคลอย CT 2x4B', imageUrl: 'https://picsum.photos/seed/IMG-PROD-107/400/300', totalMaterialCost: 0, sellingPrice: 0 },
-    { id: 'IMG-PROD-108', name: 'บล็อคลอย CT 4x4B', imageUrl: 'https://picsum.photos/seed/IMG-PROD-108/400/300', totalMaterialCost: 0, sellingPrice: 0 },
-    { id: 'IMG-PROD-109', name: 'ฝาหน้ากาก CT A-101', imageUrl: 'https://picsum.photos/seed/IMG-PROD-109/400/300', totalMaterialCost: 0, sellingPrice: 0 },
-    { id: 'IMG-PROD-110', name: 'ฝาหน้ากาก CT A-102', imageUrl: 'https://picsum.photos/seed/IMG-PROD-110/400/300', totalMaterialCost: 0, sellingPrice: 0 },
-    { id: 'IMG-PROD-111', name: 'ฝาหน้ากาก CT A-103', imageUrl: 'https://picsum.photos/seed/IMG-PROD-111/400/300', totalMaterialCost: 0, sellingPrice: 0 },
-    { id: 'IMG-PROD-112', name: 'ฝาหน้ากาก CT A-1022', imageUrl: 'https://picsum.photos/seed/IMG-PROD-112/400/300', totalMaterialCost: 0, sellingPrice: 0 },
-    { id: 'IMG-PROD-113', name: 'ฝาหน้ากาก CT A-104', imageUrl: 'https://picsum.photos/seed/IMG-PROD-113/400/300', totalMaterialCost: 0, sellingPrice: 0 },
-    { id: 'IMG-PROD-114', name: 'ฝาหน้ากาก CT A-106', imageUrl: 'https://picsum.photos/seed/IMG-PROD-114/400/300', totalMaterialCost: 0, sellingPrice: 0 },
-    { id: 'IMG-PROD-115', name: 'บล็อคลอย BEWON 2x4', imageUrl: 'https://picsum.photos/seed/IMG-PROD-115/400/300', totalMaterialCost: 0, sellingPrice: 0 },
-    { id: 'IMG-PROD-116', name: 'บล็อคลอย BEWON 4x4', imageUrl: 'https://picsum.photos/seed/IMG-PROD-116/400/300', totalMaterialCost: 0, sellingPrice: 0 },
-    { id: 'IMG-PROD-117', name: 'ฝาหน้ากาก BEWON 201', imageUrl: 'https://picsum.photos/seed/IMG-PROD-117/400/300', totalMaterialCost: 0, sellingPrice: 0 },
-    { id: 'IMG-PROD-118', name: 'ฝาหน้ากาก BEWON 202', imageUrl: 'https://picsum.photos/seed/IMG-PROD-118/400/300', totalMaterialCost: 0, sellingPrice: 0 },
-    { id: 'IMG-PROD-119', name: 'ฝาหน้ากาก BEWON 203', imageUrl: 'https://picsum.photos/seed/IMG-PROD-119/400/300', totalMaterialCost: 0, sellingPrice: 0 },
-    { id: 'IMG-PROD-120', name: 'ฝาหน้ากาก BEWON 222', imageUrl: 'https://picsum.photos/seed/IMG-PROD-120/400/300', totalMaterialCost: 0, sellingPrice: 0 },
-    { id: 'IMG-PROD-121', name: 'ฝาหน้ากาก BEWON 604', imageUrl: 'https://picsum.photos/seed/IMG-PROD-121/400/300', totalMaterialCost: 0, sellingPrice: 0 },
-    { id: 'IMG-PROD-122', name: 'ฝาหน้ากาก BEWON 606', imageUrl: 'https://picsum.photos/seed/IMG-PROD-122/400/300', totalMaterialCost: 0, sellingPrice: 0 },
-    { id: 'IMG-PROD-123', name: 'ฝาเทาใส CHONG-2 PC', imageUrl: 'https://picsum.photos/seed/IMG-PROD-123/400/300', totalMaterialCost: 0, sellingPrice: 0 },
-    { id: 'IMG-PROD-124', name: 'ฝาเทาใส CHONG-4 PC', imageUrl: 'https://picsum.photos/seed/IMG-PROD-124/400/300', totalMaterialCost: 0, sellingPrice: 0 },
-    { id: 'IMG-PROD-125', name: 'ฝาเทาใส CHONG-6 PC', imageUrl: 'https://picsum.photos/seed/IMG-PROD-125/400/300', totalMaterialCost: 0, sellingPrice: 0 },
-    { id: 'IMG-PROD-126', name: 'ฝาเทาใส CHONG-8 PC', imageUrl: 'https://picsum.photos/seed/IMG-PROD-126/400/300', totalMaterialCost: 0, sellingPrice: 0 },
-    { id: 'IMG-PROD-127', name: 'ฝาเทาใส CHONG-10 PC', imageUrl: 'https://picsum.photos/seed/IMG-PROD-127/400/300', totalMaterialCost: 0, sellingPrice: 0 },
-    { id: 'IMG-PROD-128', name: 'ฝาขาว CHONG-2 ABS', imageUrl: 'https://picsum.photos/seed/IMG-PROD-128/400/300', totalMaterialCost: 0, sellingPrice: 0 },
-    { id: 'IMG-PROD-129', name: 'ฝาขาว CHONG-4 ABS', imageUrl: 'https://picsum.photos/seed/IMG-PROD-129/400/300', totalMaterialCost: 0, sellingPrice: 0 },
-    { id: 'IMG-PROD-130', name: 'ฝาขาว CHONG-6 ABS', imageUrl: 'https://picsum.photos/seed/IMG-PROD-130/400/300', totalMaterialCost: 0, sellingPrice: 0 },
-    { id: 'IMG-PROD-131', name: 'ฝาขาว CHONG-8 ABS', imageUrl: 'https://picsum.photos/seed/IMG-PROD-131/400/300', totalMaterialCost: 0, sellingPrice: 0 },
-    { id: 'IMG-PROD-132', name: 'ฝาขาว CHONG-10 ABS', imageUrl: 'https://picsum.photos/seed/IMG-PROD-132/400/300', totalMaterialCost: 0, sellingPrice: 0 },
-];
-const newBomComponentsFromImage: BomComponent[] = [
-    { id: 'IMG-PROD-101-PP-001', productId: 'IMG-PROD-101', materialId: 'PP-001', quantity: 0.0458 },
-    { id: 'IMG-PROD-101-OTHER-COSTS', productId: 'IMG-PROD-101', materialId: 'OTHER-COSTS', quantity: 1.15 },
-    { id: 'IMG-PROD-102-PP-001', productId: 'IMG-PROD-102', materialId: 'PP-001', quantity: 0.0626 },
-    { id: 'IMG-PROD-102-OTHER-COSTS', productId: 'IMG-PROD-102', materialId: 'OTHER-COSTS', quantity: 1.61 },
-    { id: 'IMG-PROD-103-PP-001', productId: 'IMG-PROD-103', materialId: 'PP-001', quantity: 0.0458 },
-    { id: 'IMG-PROD-103-OTHER-COSTS', productId: 'IMG-PROD-103', materialId: 'OTHER-COSTS', quantity: 1.16 },
-    { id: 'IMG-PROD-104-PP-001', productId: 'IMG-PROD-104', materialId: 'PP-001', quantity: 0.0626 },
-    { id: 'IMG-PROD-104-OTHER-COSTS', productId: 'IMG-PROD-104', materialId: 'OTHER-COSTS', quantity: 1.73 },
-    { id: 'IMG-PROD-105-PP-001', productId: 'IMG-PROD-105', materialId: 'PP-001', quantity: 0.0458 },
-    { id: 'IMG-PROD-105-OTHER-COSTS', productId: 'IMG-PROD-105', materialId: 'OTHER-COSTS', quantity: 1.29 },
-    { id: 'IMG-PROD-106-PP-001', productId: 'IMG-PROD-106', materialId: 'PP-001', quantity: 0.0626 },
-    { id: 'IMG-PROD-106-OTHER-COSTS', productId: 'IMG-PROD-106', materialId: 'OTHER-COSTS', quantity: 1.61 },
-    { id: 'IMG-PROD-107-PP-001', productId: 'IMG-PROD-107', materialId: 'PP-001', quantity: 0.0458 },
-    { id: 'IMG-PROD-107-OTHER-COSTS', productId: 'IMG-PROD-107', materialId: 'OTHER-COSTS', quantity: 1.16 },
-    { id: 'IMG-PROD-108-PP-001', productId: 'IMG-PROD-108', materialId: 'PP-001', quantity: 0.0626 },
-    { id: 'IMG-PROD-108-OTHER-COSTS', productId: 'IMG-PROD-108', materialId: 'OTHER-COSTS', quantity: 1.73 },
-    { id: 'IMG-PROD-109-PP-001', productId: 'IMG-PROD-109', materialId: 'PP-001', quantity: 0.0185 },
-    { id: 'IMG-PROD-109-OTHER-COSTS', productId: 'IMG-PROD-109', materialId: 'OTHER-COSTS', quantity: 2.74 },
-    { id: 'IMG-PROD-110-PP-001', productId: 'IMG-PROD-110', materialId: 'PP-001', quantity: 0.0170 },
-    { id: 'IMG-PROD-110-OTHER-COSTS', productId: 'IMG-PROD-110', materialId: 'OTHER-COSTS', quantity: 2.76 },
-    { id: 'IMG-PROD-111-PP-001', productId: 'IMG-PROD-111', materialId: 'PP-001', quantity: 0.0155 },
-    { id: 'IMG-PROD-111-OTHER-COSTS', productId: 'IMG-PROD-111', materialId: 'OTHER-COSTS', quantity: 2.71 },
-    { id: 'IMG-PROD-112-PP-001', productId: 'IMG-PROD-112', materialId: 'PP-001', quantity: 0.0170 },
-    { id: 'IMG-PROD-112-OTHER-COSTS', productId: 'IMG-PROD-112', materialId: 'OTHER-COSTS', quantity: 2.98 },
-    { id: 'IMG-PROD-113-PP-001', productId: 'IMG-PROD-113', materialId: 'PP-001', quantity: 0.0260 },
-    { id: 'IMG-PROD-113-OTHER-COSTS', productId: 'IMG-PROD-113', materialId: 'OTHER-COSTS', quantity: 3.48 },
-    { id: 'IMG-PROD-114-PP-001', productId: 'IMG-PROD-114', materialId: 'PP-001', quantity: 0.0218 },
-    { id: 'IMG-PROD-114-OTHER-COSTS', productId: 'IMG-PROD-114', materialId: 'OTHER-COSTS', quantity: 3.81 },
-    { id: 'IMG-PROD-115-PP-001', productId: 'IMG-PROD-115', materialId: 'PP-001', quantity: 0.0458 },
-    { id: 'IMG-PROD-115-OTHER-COSTS', productId: 'IMG-PROD-115', materialId: 'OTHER-COSTS', quantity: 1.29 },
-    { id: 'IMG-PROD-116-PP-001', productId: 'IMG-PROD-116', materialId: 'PP-001', quantity: 0.0626 },
-    { id: 'IMG-PROD-116-OTHER-COSTS', productId: 'IMG-PROD-116', materialId: 'OTHER-COSTS', quantity: 1.85 },
-    { id: 'IMG-PROD-117-PP-001', productId: 'IMG-PROD-117', materialId: 'PP-001', quantity: 0.0185 },
-    { id: 'IMG-PROD-117-OTHER-COSTS', productId: 'IMG-PROD-117', materialId: 'OTHER-COSTS', quantity: 2.65 },
-    { id: 'IMG-PROD-118-PP-001', productId: 'IMG-PROD-118', materialId: 'PP-001', quantity: 0.0170 },
-    { id: 'IMG-PROD-118-OTHER-COSTS', productId: 'IMG-PROD-118', materialId: 'OTHER-COSTS', quantity: 2.66 },
-    { id: 'IMG-PROD-119-PP-001', productId: 'IMG-PROD-119', materialId: 'PP-001', quantity: 0.0155 },
-    { id: 'IMG-PROD-119-OTHER-COSTS', productId: 'IMG-PROD-119', materialId: 'OTHER-COSTS', quantity: 2.71 },
-    { id: 'IMG-PROD-120-PP-001', productId: 'IMG-PROD-120', materialId: 'PP-001', quantity: 0.0170 },
-    { id: 'IMG-PROD-120-OTHER-COSTS', productId: 'IMG-PROD-120', materialId: 'OTHER-COSTS', quantity: 2.90 },
-    { id: 'IMG-PROD-121-PP-001', productId: 'IMG-PROD-121', materialId: 'PP-001', quantity: 0.0260 },
-    { id: 'IMG-PROD-121-OTHER-COSTS', productId: 'IMG-PROD-121', materialId: 'OTHER-COSTS', quantity: 3.85 },
-    { id: 'IMG-PROD-122-PP-001', productId: 'IMG-PROD-122', materialId: 'PP-001', quantity: 0.0218 },
-    { id: 'IMG-PROD-122-OTHER-COSTS', productId: 'IMG-PROD-122', materialId: 'OTHER-COSTS', quantity: 4.01 },
-    { id: 'IMG-PROD-123-IMG-MAT-086', productId: 'IMG-PROD-123', materialId: 'IMG-MAT-086', quantity: 0.0410 },
-    { id: 'IMG-PROD-123-OTHER-COSTS', productId: 'IMG-PROD-123', materialId: 'OTHER-COSTS', quantity: 1.76 },
-    { id: 'IMG-PROD-124-IMG-MAT-086', productId: 'IMG-PROD-124', materialId: 'IMG-MAT-086', quantity: 0.0690 },
-    { id: 'IMG-PROD-124-OTHER-COSTS', productId: 'IMG-PROD-124', materialId: 'OTHER-COSTS', quantity: 2.94 },
-    { id: 'IMG-PROD-125-IMG-MAT-086', productId: 'IMG-PROD-125', materialId: 'IMG-MAT-086', quantity: 0.0810 },
-    { id: 'IMG-PROD-125-OTHER-COSTS', productId: 'IMG-PROD-125', materialId: 'OTHER-COSTS', quantity: 4.33 },
-    { id: 'IMG-PROD-126-IMG-MAT-086', productId: 'IMG-PROD-126', materialId: 'IMG-MAT-086', quantity: 0.1160 },
-    { id: 'IMG-PROD-126-OTHER-COSTS', productId: 'IMG-PROD-126', materialId: 'OTHER-COSTS', quantity: 4.20 },
-    { id: 'IMG-PROD-127-IMG-MAT-086', productId: 'IMG-PROD-127', materialId: 'IMG-MAT-086', quantity: 0.1180 },
-    { id: 'IMG-PROD-127-OTHER-COSTS', productId: 'IMG-PROD-127', materialId: 'OTHER-COSTS', quantity: 5.57 },
-    { id: 'IMG-PROD-128-IMG-MAT-083', productId: 'IMG-PROD-128', materialId: 'IMG-MAT-083', quantity: 0.0950 },
-    { id: 'IMG-PROD-128-OTHER-COSTS', productId: 'IMG-PROD-128', materialId: 'OTHER-COSTS', quantity: 2.38 },
-    { id: 'IMG-PROD-129-IMG-MAT-083', productId: 'IMG-PROD-129', materialId: 'IMG-MAT-083', quantity: 0.1410 },
-    { id: 'IMG-PROD-129-OTHER-COSTS', productId: 'IMG-PROD-129', materialId: 'OTHER-COSTS', quantity: 3.36 },
-    { id: 'IMG-PROD-130-IMG-MAT-083', productId: 'IMG-PROD-130', materialId: 'IMG-MAT-083', quantity: 0.1670 },
-    { id: 'IMG-PROD-130-OTHER-COSTS', productId: 'IMG-PROD-130', materialId: 'OTHER-COSTS', quantity: 3.94 },
-    { id: 'IMG-PROD-131-IMG-MAT-083', productId: 'IMG-PROD-131', materialId: 'IMG-MAT-083', quantity: 0.1880 },
-    { id: 'IMG-PROD-131-OTHER-COSTS', productId: 'IMG-PROD-131', materialId: 'OTHER-COSTS', quantity: 4.40 },
-    { id: 'IMG-PROD-132-IMG-MAT-083', productId: 'IMG-PROD-132', materialId: 'IMG-MAT-083', quantity: 0.2110 },
-    { id: 'IMG-PROD-132-OTHER-COSTS', productId: 'IMG-PROD-132', materialId: 'OTHER-COSTS', quantity: 4.89 },
+  { id: 'OTHER-COSTS', name: 'ต้นทุนอื่นๆ/ส่วนต่าง', unit: 'เหมา', pricePerUnit: 1 },
 ];
 
 const initialState: State = {
-  materials: [
-    { id: 'PP-001', name: 'เม็ดพลาสติก PP สีดำ', unit: 'กิโลกรัม', pricePerUnit: 55.50, stockQuantity: 500 },
-    { id: 'ABS-002', name: 'เม็ดพลาสติก ABS สีขาว', unit: 'กิโลกรัม', pricePerUnit: 82.00, stockQuantity: 350 },
-    { id: 'COLOR-BLUE', name: 'แม่สีน้ำเงิน', unit: 'กรัม', pricePerUnit: 0.75, stockQuantity: 10000 },
-    { id: 'SCREW-M3', name: 'สกรู M3', unit: 'ชิ้น', pricePerUnit: 1.25, stockQuantity: 25000 },
-    { id: 'OTHER-COSTS', name: 'ต้นทุนอื่นๆ/ส่วนต่าง', unit: 'เหมา', pricePerUnit: 1, stockQuantity: 999999 },
-    ...newMaterialsFromImage.map(m => ({...m, stockQuantity: Math.random() > 0.5 ? 1000 : 2000 }))
-  ],
-  products: [
-    { id: 'PROD-001', name: 'ฝาครอบมอเตอร์', imageUrl: 'https://picsum.photos/seed/PROD-001/400/300', totalMaterialCost: 0, sellingPrice: 0 },
-    { id: 'PROD-002', name: 'ฐานยึดอุปกรณ์', imageUrl: 'https://picsum.photos/seed/PROD-002/400/300', totalMaterialCost: 0, sellingPrice: 0 },
-    ...newProductsFromImage
-  ],
-  bomComponents: [
-    { id: 'PROD-001-PP-001', productId: 'PROD-001', materialId: 'PP-001', quantity: 0.150 },
-    { id: 'PROD-001-COLOR-BLUE', productId: 'PROD-001', materialId: 'COLOR-BLUE', quantity: 5 },
-    { id: 'PROD-002-ABS-002', productId: 'PROD-002', materialId: 'ABS-002', quantity: 0.250 },
-    { id: 'PROD-002-SCREW-M3', productId: 'PROD-002', materialId: 'SCREW-M3', quantity: 4 },
-    ...newBomComponentsFromImage
-  ],
-  productionOrders: [],
+  materials: materialMasterList.map(m => ({
+    ...m,
+    stockQuantity: Math.floor(Math.random() * 2500) + 500, // Random stock for demo
+  })),
+  products: newProducts,
+  bomComponents: newBomComponents,
 };
 
 // --- Helper function for cost calculation ---
@@ -242,7 +284,6 @@ const calculateAllProductCosts = (products: Product[], bomComponents: BomCompone
             }
             return sum;
         }, 0);
-        // Keep existing sellingPrice when recalculating cost
         return { ...product, totalMaterialCost: totalCost };
     });
 };
@@ -281,7 +322,6 @@ const bomReducer = (state: State, action: Action): State => {
       return { ...state, products: state.products.map(p => p.id === action.payload.id ? { ...p, ...action.payload } : p) };
     
     case 'DELETE_PRODUCT':
-      // No recalculation needed as product and its BOMs are gone
       return {
         ...state,
         products: state.products.filter(p => p.id !== action.payload),
@@ -335,7 +375,7 @@ const bomReducer = (state: State, action: Action): State => {
         }));
 
       if (newComponents.length === 0) {
-        return state; // Avoids recalculation if nothing changes
+        return state;
       }
 
       const newBomComponents = [...state.bomComponents, ...newComponents];
@@ -347,12 +387,6 @@ const bomReducer = (state: State, action: Action): State => {
         products: updatedProducts,
       };
     }
-    
-    case 'ADD_PRODUCTION_ORDER':
-      return {
-        ...state,
-        productionOrders: [...state.productionOrders, action.payload]
-      };
 
     default:
       return state;
@@ -373,17 +407,12 @@ const initializer = (): State => {
     stateToInitialize = initialState;
   }
 
-  // Ensure all materials have an image URL and stock quantity for consistent display
   stateToInitialize.materials = stateToInitialize.materials.map(material => ({
     ...material,
     imageUrl: material.imageUrl || `https://picsum.photos/seed/${material.id}/200`,
     stockQuantity: material.stockQuantity ?? 0,
   }));
   
-  // Ensure productionOrders array exists
-  stateToInitialize.productionOrders = stateToInitialize.productionOrders || [];
-  
-  // Recalculate costs on load to ensure data integrity
   const recalculatedProducts = calculateAllProductCosts(stateToInitialize.products, stateToInitialize.bomComponents, stateToInitialize.materials);
   return { ...stateToInitialize, products: recalculatedProducts };
 };
