@@ -1,4 +1,5 @@
 
+
 import React, { useState, useMemo } from 'react';
 import { useBom } from '../context/BomContext';
 import { View, BomComponent, BomComponentWithDetails, Product } from '../types';
@@ -241,21 +242,24 @@ const ProductDetailPage = ({ productId, setView }: ProductDetailPageProps) => {
 
       <div className="bg-white shadow-lg rounded-lg p-6">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-2xl font-bold text-gray-800 flex items-center"><PackageIcon className="h-6 w-6 mr-2 text-gray-600"/>ส่วนประกอบ BOM</h2>
+          <h2 className="text-2xl font-bold text-gray-800 flex items-center">
+            <PackageIcon className="h-6 w-6 mr-2 text-gray-600"/>
+            <span>ส่วนประกอบ BOM</span>
+          </h2>
           <div className="flex items-center space-x-2">
             <button
                 onClick={() => setIsCopyModalOpen(true)}
                 className="flex items-center bg-gray-200 text-gray-800 px-4 py-2 rounded-lg shadow-sm hover:bg-gray-300 transition-colors"
                 >
                 <CopyIcon className="h-5 w-5 mr-2" />
-                คัดลอก BOM
+                <span>คัดลอก BOM</span>
             </button>
             <button
                 onClick={() => handleOpenModal()}
                 className="flex items-center bg-blue-600 text-white px-4 py-2 rounded-lg shadow hover:bg-blue-700 transition-colors"
             >
                 <PlusIcon className="h-5 w-5 mr-2" />
-                เพิ่มส่วนประกอบ
+                <span>เพิ่มส่วนประกอบ</span>
             </button>
           </div>
         </div>

@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useBom } from '../context/BomContext';
 import { Material } from '../types';
@@ -103,7 +104,7 @@ const MaterialsPage = () => {
           className="flex items-center bg-blue-600 text-white px-4 py-2 rounded-lg shadow hover:bg-blue-700 transition-colors"
         >
           <PlusIcon className="h-5 w-5 mr-2" />
-          เพิ่มวัตถุดิบ
+          <span>เพิ่มวัตถุดิบ</span>
         </button>
       </div>
 

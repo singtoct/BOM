@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useBom } from '../context/BomContext';
 import { Product, View } from '../types';
@@ -166,7 +167,7 @@ const ProductsPage = ({ setView }: ProductsPageProps) => {
           className="flex items-center bg-blue-600 text-white px-4 py-2 rounded-lg shadow hover:bg-blue-700 transition-colors"
         >
           <PlusIcon className="h-5 w-5 mr-2" />
-          เพิ่มสินค้า
+          <span>เพิ่มสินค้า</span>
         </button>
       </div>
 

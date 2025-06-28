@@ -23,7 +23,7 @@ const Header = ({ setView }: HeaderProps) => {
                   className="text-gray-600 hover:bg-gray-100 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium flex items-center"
                 >
                   <ChartBarIcon className="h-5 w-5 mr-2" />
-                  แดชบอร์ด
+                  <span>แดชบอร์ด</span>
                 </button>
                 <button
                   onClick={() => setView({ type: 'products' })}
@@ -42,7 +42,7 @@ const Header = ({ setView }: HeaderProps) => {
                   className="text-gray-600 hover:bg-gray-100 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium flex items-center"
                 >
                   <CalculatorIcon className="h-5 w-5 mr-2" />
-                  เครื่องคำนวณการผลิต
+                  <span>เครื่องคำนวณการผลิต</span>
                 </button>
               </div>
             </div>

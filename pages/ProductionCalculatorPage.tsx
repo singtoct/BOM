@@ -1,4 +1,5 @@
 
+
 import React, { useState, useMemo } from 'react';
 import * as XLSX from 'xlsx';
 import { useBom } from '../context/BomContext';
@@ -165,7 +166,7 @@ const ProductionCalculatorPage = () => {
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-gray-800 flex items-center">
             <CalculatorIcon className="h-7 w-7 mr-3 text-gray-700"/>
-            เครื่องคำนวณการผลิต
+            <span>เครื่องคำนวณการผลิต</span>
         </h1>
       </div>
 
@@ -199,7 +200,7 @@ const ProductionCalculatorPage = () => {
                     className="w-full flex items-center justify-center bg-blue-600 text-white px-6 py-3 rounded-lg shadow hover:bg-blue-700 transition-colors text-lg font-semibold"
                 >
                     <CalculatorIcon className="h-5 w-5 mr-2" />
-                    คำนวณความต้องการวัตถุดิบ
+                    <span>คำนวณความต้องการวัตถุดิบ</span>
                 </button>
             </div>
         </div>
@@ -250,7 +251,7 @@ const ProductionCalculatorPage = () => {
                             disabled={!results || results.filter(r => r.shortage > 0).length === 0}
                          >
                             <FileDownIcon className="h-4 w-4 mr-2" />
-                            ส่งออกเป็น Excel
+                            <span>ส่งออกเป็น Excel</span>
                         </button>
                      </div>
                      <div className="flex justify-between items-center bg-yellow-100 p-4 rounded-lg">
