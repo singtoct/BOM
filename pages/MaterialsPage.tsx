@@ -1,9 +1,9 @@
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useBom } from '../context/BomContext';
 import { Material } from '../types';
 import Modal from '../components/Modal';
-import { PlusIcon, EditIcon, TrashIcon } from '../components/icons';
+import { PlusIcon, EditIcon, TrashIcon, SearchIcon } from '../components/icons';
 
 const MaterialsPage = () => {
   const { state, dispatch } = useBom();
@@ -12,6 +12,18 @@ const MaterialsPage = () => {
   const [formData, setFormData] = useState<Omit<Material, 'id'>>({ name: '', unit: '', pricePerUnit: 0, imageUrl: '', stockQuantity: 0 });
   const [newId, setNewId] = useState('');
   const [pasteData, setPasteData] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
+
+  const filteredMaterials = useMemo(() => {
+    if (!searchTerm) {
+      return state.materials;
+    }
+    const lowercasedTerm = searchTerm.toLowerCase();
+    return state.materials.filter(material =>
+      material.name.toLowerCase().includes(lowercasedTerm) ||
+      material.id.toLowerCase().includes(lowercasedTerm)
+    );
+  }, [state.materials, searchTerm]);
 
   const handleOpenModal = (material: Material | null = null) => {
     setEditingMaterial(material);
@@ -91,15 +103,27 @@ const MaterialsPage = () => {
 
   return (
     <div className="container mx-auto">
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex justify-between items-center mb-6 flex-wrap gap-4">
         <h1 className="text-2xl font-bold text-gray-800">จัดการวัตถุดิบ (Materials)</h1>
-        <button
-          onClick={() => handleOpenModal()}
-          className="flex items-center bg-blue-600 text-white px-4 py-2 rounded-lg shadow hover:bg-blue-700 transition-colors"
-        >
-          <PlusIcon className="h-5 w-5 mr-2" />
-          เพิ่มวัตถุดิบ
-        </button>
+        <div className="flex items-center gap-4">
+            <div className="relative">
+                <input
+                    type="text"
+                    placeholder="ค้นหาวัตถุดิบ..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-full md:w-64 pl-10 pr-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+            </div>
+            <button
+                onClick={() => handleOpenModal()}
+                className="flex items-center bg-blue-600 text-white px-4 py-2 rounded-lg shadow hover:bg-blue-700 transition-colors"
+            >
+                <PlusIcon className="h-5 w-5 mr-2" />
+                เพิ่มวัตถุดิบ
+            </button>
+        </div>
       </div>
 
       <div className="bg-white shadow-md rounded-lg overflow-hidden">
@@ -115,7 +139,7 @@ const MaterialsPage = () => {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {state.materials.map((material) => (
+              {filteredMaterials.map((material) => (
                 <tr key={material.id}>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
@@ -137,6 +161,13 @@ const MaterialsPage = () => {
                   </td>
                 </tr>
               ))}
+               {filteredMaterials.length === 0 && (
+                <tr>
+                    <td colSpan={5} className="text-center py-10 text-gray-500">
+                         {searchTerm ? `ไม่พบวัตถุดิบที่ตรงกับคำค้นหา "${searchTerm}"` : "ไม่มีข้อมูลวัตถุดิบ"}
+                    </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>

@@ -30,11 +30,31 @@ export interface BomComponentWithDetails extends BomComponent {
     componentCost: number;
 }
 
+// This interface is used by both Calculator and Dashboard
+export interface CalculationResult {
+  materialId: string;
+  materialName: string;
+  materialUnit: string;
+  materialImageUrl?: string;
+  pricePerUnit: number;
+  requiredQuantity: number;
+  stockQuantity: number;
+  shortage: number;
+}
+
+export interface ProductionOrder {
+  id: string; // Using ISO timestamp for simplicity
+  createdAt: string; // ISO date string
+  items: { productId: string; quantity: number }[];
+  results: CalculationResult[];
+}
+
 export type View = 
   | { type: 'products' }
   | { type: 'materials' }
   | { type: 'product-detail'; productId: string }
-  | { type: 'calculator' };
+  | { type: 'calculator' }
+  | { type: 'dashboard' };
 
 export type Action =
   | { type: 'ADD_MATERIAL'; payload: Material }
@@ -46,10 +66,12 @@ export type Action =
   | { type: 'ADD_BOM_COMPONENT'; payload: BomComponent }
   | { type: 'UPDATE_BOM_COMPONENT'; payload: BomComponent }
   | { type: 'DELETE_BOM_COMPONENT'; payload: string } // id
-  | { type: 'COPY_BOM_COMPONENTS'; payload: { sourceProductId: string; targetProductId: string } };
+  | { type: 'COPY_BOM_COMPONENTS'; payload: { sourceProductId: string; targetProductId: string } }
+  | { type: 'ADD_PRODUCTION_ORDER'; payload: ProductionOrder };
 
 export interface State {
     materials: Material[];
     products: Product[];
     bomComponents: BomComponent[];
+    productionOrders: ProductionOrder[];
 }

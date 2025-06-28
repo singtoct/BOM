@@ -1,6 +1,6 @@
 
 import React, { createContext, useReducer, useContext, ReactNode, useEffect } from 'react';
-import { State, Action, Material, Product, BomComponent } from '../types';
+import { State, Action, Material, Product, BomComponent, ProductionOrder } from '../types';
 
 const LOCAL_STORAGE_KEY = 'bom-app-data';
 
@@ -228,6 +228,7 @@ const initialState: State = {
     { id: 'PROD-002-SCREW-M3', productId: 'PROD-002', materialId: 'SCREW-M3', quantity: 4 },
     ...newBomComponentsFromImage
   ],
+  productionOrders: [],
 };
 
 // --- Helper function for cost calculation ---
@@ -346,6 +347,12 @@ const bomReducer = (state: State, action: Action): State => {
         products: updatedProducts,
       };
     }
+    
+    case 'ADD_PRODUCTION_ORDER':
+      return {
+        ...state,
+        productionOrders: [...state.productionOrders, action.payload]
+      };
 
     default:
       return state;
@@ -372,6 +379,9 @@ const initializer = (): State => {
     imageUrl: material.imageUrl || `https://picsum.photos/seed/${material.id}/200`,
     stockQuantity: material.stockQuantity ?? 0,
   }));
+  
+  // Ensure productionOrders array exists
+  stateToInitialize.productionOrders = stateToInitialize.productionOrders || [];
   
   // Recalculate costs on load to ensure data integrity
   const recalculatedProducts = calculateAllProductCosts(stateToInitialize.products, stateToInitialize.bomComponents, stateToInitialize.materials);
