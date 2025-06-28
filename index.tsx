@@ -1,5 +1,5 @@
 import React from 'react';
-import { createRoot } from 'react-dom/client';
+import { createRoot } from 'https://esm.sh/react-dom@19/client';
 import App from './App';
 import { BomProvider } from './context/BomContext';
 
