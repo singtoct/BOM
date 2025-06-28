@@ -30,11 +30,25 @@ export interface BomComponentWithDetails extends BomComponent {
     componentCost: number;
 }
 
+export interface ProductionOrderItem {
+    productId: string;
+    quantity: number;
+}
+
+export interface ProductionOrder {
+    id: string;
+    createdAt: string; // ISO string date
+    items: ProductionOrderItem[];
+    totalPurchaseCost: number;
+}
+
+
 export type View = 
   | { type: 'products' }
   | { type: 'materials' }
   | { type: 'product-detail'; productId: string }
-  | { type: 'calculator' };
+  | { type: 'calculator' }
+  | { type: 'dashboard' };
 
 export type Action =
   | { type: 'ADD_MATERIAL'; payload: Material }
@@ -46,10 +60,13 @@ export type Action =
   | { type: 'ADD_BOM_COMPONENT'; payload: BomComponent }
   | { type: 'UPDATE_BOM_COMPONENT'; payload: BomComponent }
   | { type: 'DELETE_BOM_COMPONENT'; payload: string } // id
-  | { type: 'COPY_BOM_COMPONENTS'; payload: { sourceProductId: string; targetProductId: string } };
+  | { type: 'COPY_BOM_COMPONENTS'; payload: { sourceProductId: string; targetProductId: string } }
+  | { type: 'ADD_PRODUCTION_ORDER', payload: ProductionOrder };
+
 
 export interface State {
     materials: Material[];
     products: Product[];
     bomComponents: BomComponent[];
+    productionOrders: ProductionOrder[];
 }

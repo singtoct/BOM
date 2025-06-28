@@ -6,12 +6,15 @@ import ProductsPage from './pages/ProductsPage';
 import MaterialsPage from './pages/MaterialsPage';
 import ProductDetailPage from './pages/ProductDetailPage';
 import ProductionCalculatorPage from './pages/ProductionCalculatorPage';
+import DashboardPage from './pages/DashboardPage';
 
 const App = () => {
-  const [view, setView] = useState<View>({ type: 'products' });
+  const [view, setView] = useState<View>({ type: 'dashboard' });
 
   const renderView = () => {
     switch (view.type) {
+      case 'dashboard':
+        return <DashboardPage setView={setView} />;
       case 'products':
         return <ProductsPage setView={setView} />;
       case 'materials':
@@ -21,7 +24,7 @@ const App = () => {
       case 'calculator':
         return <ProductionCalculatorPage />;
       default:
-        return <ProductsPage setView={setView} />;
+        return <DashboardPage setView={setView} />;
     }
   };
 

@@ -1,7 +1,9 @@
+
 import React, { useState, useMemo } from 'react';
 import * as XLSX from 'xlsx';
 import { useBom } from '../context/BomContext';
 import { CalculatorIcon, FileDownIcon } from '../components/icons';
+import { ProductionOrderItem } from '../types';
 
 interface CalculationResult {
   materialId: string;
@@ -15,17 +17,20 @@ interface CalculationResult {
 }
 
 const ProductionCalculatorPage = () => {
-  const { state } = useBom();
+  const { state, dispatch } = useBom();
   const { products, materials, bomComponents } = state;
 
   const [productionPlan, setProductionPlan] = useState<Record<string, number>>({});
   const [results, setResults] = useState<CalculationResult[] | null>(null);
+  const [isPlanSaved, setIsPlanSaved] = useState(false);
 
   const handlePlanChange = (productId: string, quantity: number) => {
     setProductionPlan(prev => ({
       ...prev,
       [productId]: Math.max(0, quantity), // Ensure quantity is not negative
     }));
+    setResults(null); // Reset results when plan changes
+    setIsPlanSaved(false);
   };
 
   const handleCalculate = () => {
@@ -65,6 +70,7 @@ const ProductionCalculatorPage = () => {
       .sort((a,b) => b.shortage - a.shortage); // Sort by shortage descending
 
     setResults(calculatedResults);
+    setIsPlanSaved(false);
   };
 
   const totalPurchaseCost = useMemo(() => {
@@ -129,6 +135,29 @@ const ProductionCalculatorPage = () => {
 
     XLSX.writeFile(workbook, "รายการจัดซื้อวัตถุดิบ.xlsx");
   };
+  
+  const handleSaveProductionPlan = () => {
+      const items: ProductionOrderItem[] = Object.entries(productionPlan)
+        .filter(([, quantity]) => quantity > 0)
+        .map(([productId, quantity]) => ({ productId, quantity }));
+
+      if (items.length === 0) {
+          alert("ไม่สามารถบันทึกแผนการผลิตที่ว่างเปล่าได้");
+          return;
+      }
+
+      dispatch({
+          type: 'ADD_PRODUCTION_ORDER',
+          payload: {
+              id: `PO-${Date.now()}`,
+              createdAt: new Date().toISOString(),
+              items: items,
+              totalPurchaseCost: totalPurchaseCost
+          }
+      });
+      setIsPlanSaved(true);
+      alert("บันทึกแผนการผลิตเรียบร้อยแล้ว และปรับปรุงสต็อกวัตถุดิบแล้ว!");
+  };
 
 
   return (
@@ -145,7 +174,7 @@ const ProductionCalculatorPage = () => {
         <div className="bg-white p-6 rounded-lg shadow-md">
             <h2 className="text-xl font-semibold text-gray-800 mb-4">1. สร้างแผนการผลิต</h2>
             <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-2">
-                {products.map(product => (
+                {products.sort((a,b) => a.name.localeCompare(b.name)).map(product => (
                     <div key={product.id} className="flex items-center justify-between bg-gray-50 p-3 rounded-lg">
                         <div className="flex items-center">
                            <img src={product.imageUrl} alt={product.name} className="w-12 h-12 rounded-md object-cover mr-4" />
@@ -180,7 +209,7 @@ const ProductionCalculatorPage = () => {
            <h2 className="text-xl font-semibold text-gray-800 mb-4">2. ผลลัพธ์</h2>
            {results ? (
              <div className="space-y-3">
-                 <div className="max-h-[55vh] overflow-y-auto pr-2">
+                 <div className="max-h-[50vh] overflow-y-auto pr-2">
                      <table className="min-w-full divide-y divide-gray-200">
                          <thead className="bg-gray-50 sticky top-0">
                              <tr>
@@ -228,6 +257,18 @@ const ProductionCalculatorPage = () => {
                          <span className="font-bold text-yellow-800">รวมค่าใช้จ่ายที่ต้องซื้อเพิ่ม:</span>
                          <span className="text-2xl font-bold text-yellow-900">{totalPurchaseCost.toLocaleString('th-TH', { style: 'currency', currency: 'THB' })}</span>
                      </div>
+                 </div>
+
+                 <div className="mt-6">
+                    <button 
+                        onClick={handleSaveProductionPlan}
+                        disabled={isPlanSaved}
+                        className="w-full flex items-center justify-center px-6 py-3 rounded-lg shadow text-lg font-semibold transition-colors
+                                   disabled:bg-gray-400 disabled:cursor-not-allowed
+                                   bg-teal-600 text-white hover:bg-teal-700"
+                    >
+                        {isPlanSaved ? 'บันทึกแผนการผลิตนี้แล้ว' : 'บันทึกแผนการผลิตนี้'}
+                    </button>
                  </div>
              </div>
            ) : (

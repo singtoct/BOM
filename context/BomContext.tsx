@@ -1,6 +1,6 @@
 
 import React, { createContext, useReducer, useContext, ReactNode, useEffect } from 'react';
-import { State, Action, Material, Product, BomComponent } from '../types';
+import { State, Action, Material, Product, BomComponent, ProductionOrder } from '../types';
 
 const LOCAL_STORAGE_KEY = 'bom-app-data';
 
@@ -271,6 +271,7 @@ const initialState: State = {
   })),
   products: newProducts,
   bomComponents: newBomComponents,
+  productionOrders: [],
 };
 
 // --- Helper function for cost calculation ---
@@ -387,6 +388,33 @@ const bomReducer = (state: State, action: Action): State => {
         products: updatedProducts,
       };
     }
+    
+    case 'ADD_PRODUCTION_ORDER': {
+      // Deduct stock for materials that were used from shortage calculation
+      const materialsToUpdate = new Map<string, number>();
+
+      for(const item of action.payload.items) {
+          const productBoms = state.bomComponents.filter(bom => bom.productId === item.productId);
+          for (const bom of productBoms) {
+              const currentStock = materialsToUpdate.get(bom.materialId) ?? state.materials.find(m => m.id === bom.materialId)?.stockQuantity ?? 0;
+              const quantityUsed = bom.quantity * item.quantity;
+              materialsToUpdate.set(bom.materialId, currentStock - quantityUsed);
+          }
+      }
+
+      const updatedMaterials = state.materials.map(material => {
+          if (materialsToUpdate.has(material.id)) {
+              return { ...material, stockQuantity: Math.max(0, materialsToUpdate.get(material.id)!) };
+          }
+          return material;
+      });
+
+      return {
+        ...state,
+        materials: updatedMaterials,
+        productionOrders: [...state.productionOrders, action.payload],
+      };
+    }
 
     default:
       return state;
@@ -396,9 +424,14 @@ const bomReducer = (state: State, action: Action): State => {
 const initializer = (): State => {
   let stateToInitialize: State;
   try {
-    const storedState = localStorage.getItem(LOCAL_STORAGE_KEY);
-    if (storedState) {
-        stateToInitialize = JSON.parse(storedState);
+    const storedStateJSON = localStorage.getItem(LOCAL_STORAGE_KEY);
+    if (storedStateJSON) {
+        const storedState = JSON.parse(storedStateJSON);
+        stateToInitialize = {
+            ...initialState, // Start with default structure
+            ...storedState, // Override with stored data
+            productionOrders: storedState.productionOrders || [], // Ensure productionOrders exists
+        };
     } else {
         stateToInitialize = initialState;
     }
@@ -407,6 +440,7 @@ const initializer = (): State => {
     stateToInitialize = initialState;
   }
 
+  // Ensure all materials have required fields, even if loading old data structure
   stateToInitialize.materials = stateToInitialize.materials.map(material => ({
     ...material,
     imageUrl: material.imageUrl || `https://picsum.photos/seed/${material.id}/200`,
