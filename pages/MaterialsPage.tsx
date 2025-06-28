@@ -9,7 +9,7 @@ const MaterialsPage = () => {
   const { state, dispatch } = useBom();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingMaterial, setEditingMaterial] = useState<Material | null>(null);
-  const [formData, setFormData] = useState<Omit<Material, 'id'>>({ name: '', unit: '', pricePerUnit: 0 });
+  const [formData, setFormData] = useState<Omit<Material, 'id'>>({ name: '', unit: '', pricePerUnit: 0, imageUrl: '', stockQuantity: 0 });
   const [newId, setNewId] = useState('');
   const [pasteData, setPasteData] = useState('');
 
@@ -17,9 +17,9 @@ const MaterialsPage = () => {
     setEditingMaterial(material);
     setPasteData(''); // Reset paste area
     if (material) {
-      setFormData({ name: material.name, unit: material.unit, pricePerUnit: material.pricePerUnit });
+      setFormData({ name: material.name, unit: material.unit, pricePerUnit: material.pricePerUnit, imageUrl: material.imageUrl || '', stockQuantity: material.stockQuantity });
     } else {
-      setFormData({ name: '', unit: '', pricePerUnit: 0 });
+      setFormData({ name: '', unit: '', pricePerUnit: 0, imageUrl: '', stockQuantity: 0 });
       setNewId('');
     }
     setIsModalOpen(true);
@@ -32,7 +32,7 @@ const MaterialsPage = () => {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: name === 'pricePerUnit' ? parseFloat(value) || 0 : value }));
+    setFormData(prev => ({ ...prev, [name]: ['pricePerUnit', 'stockQuantity'].includes(name) ? parseFloat(value) || 0 : value }));
   };
   
   const handleIdChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -53,11 +53,12 @@ const MaterialsPage = () => {
     const price = parseFloat(priceStr);
 
     if (name && unit && !isNaN(price)) {
-        setFormData({
+        setFormData(prev => ({
+            ...prev,
             name: name,
             unit: unit,
             pricePerUnit: price
-        });
+        }));
     }
   };
 
@@ -70,7 +71,14 @@ const MaterialsPage = () => {
         alert('รหัสวัตถุดิบต้องไม่ซ้ำกันและไม่เป็นค่าว่าง');
         return;
       }
-      dispatch({ type: 'ADD_MATERIAL', payload: { id: newId, ...formData } });
+      dispatch({ 
+        type: 'ADD_MATERIAL', 
+        payload: { 
+          id: newId, 
+          ...formData,
+          imageUrl: formData.imageUrl || `https://picsum.photos/seed/${newId}/200` 
+        } 
+      });
     }
     handleCloseModal();
   };
@@ -99,20 +107,30 @@ const MaterialsPage = () => {
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">รหัสวัตถุดิบ</th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ชื่อวัตถุดิบ</th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-2/5">ชื่อวัตถุดิบ</th>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">หน่วยนับ</th>
                 <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">ราคาต่อหน่วย</th>
+                <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">จำนวนในสต็อก</th>
                 <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {state.materials.map((material) => (
                 <tr key={material.id}>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{material.id}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{material.name}</td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="flex items-center">
+                      <div className="flex-shrink-0 h-10 w-10">
+                        <img className="h-10 w-10 rounded-md object-cover" src={material.imageUrl} alt={material.name} />
+                      </div>
+                      <div className="ml-4">
+                        <div className="text-sm font-medium text-gray-900">{material.name}</div>
+                        <div className="text-sm text-gray-500">{material.id}</div>
+                      </div>
+                    </div>
+                  </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{material.unit}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">{material.pricePerUnit.toFixed(2)}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">{material.stockQuantity.toLocaleString()}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-center">
                     <button onClick={() => handleOpenModal(material)} className="text-indigo-600 hover:text-indigo-900 mr-3"><EditIcon className="h-5 w-5"/></button>
                     <button onClick={() => handleDelete(material.id)} className="text-red-600 hover:text-red-900"><TrashIcon className="h-5 w-5"/></button>
@@ -167,27 +185,53 @@ const MaterialsPage = () => {
               className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
             />
           </div>
-          <div>
-            <label htmlFor="unit" className="block text-sm font-medium text-gray-700">หน่วยนับ (Unit)</label>
+           <div>
+            <label htmlFor="imageUrl" className="block text-sm font-medium text-gray-700">URL รูปภาพ (Image URL)</label>
             <input
               type="text"
-              name="unit"
-              id="unit"
-              value={formData.unit}
+              name="imageUrl"
+              id="imageUrl"
+              value={formData.imageUrl}
               onChange={handleChange}
-              required
+              placeholder="ปล่อยว่างเพื่อใช้รูปภาพอัตโนมัติ"
               className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
             />
           </div>
-          <div>
-            <label htmlFor="pricePerUnit" className="block text-sm font-medium text-gray-700">ราคาต่อหน่วย (Price per Unit)</label>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label htmlFor="unit" className="block text-sm font-medium text-gray-700">หน่วยนับ (Unit)</label>
+              <input
+                type="text"
+                name="unit"
+                id="unit"
+                value={formData.unit}
+                onChange={handleChange}
+                required
+                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+              />
+            </div>
+            <div>
+              <label htmlFor="pricePerUnit" className="block text-sm font-medium text-gray-700">ราคาต่อหน่วย</label>
+              <input
+                type="number"
+                name="pricePerUnit"
+                id="pricePerUnit"
+                value={formData.pricePerUnit}
+                onChange={handleChange}
+                step="0.01"
+                required
+                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+              />
+            </div>
+          </div>
+           <div>
+            <label htmlFor="stockQuantity" className="block text-sm font-medium text-gray-700">จำนวนในสต็อก (Stock Quantity)</label>
             <input
               type="number"
-              name="pricePerUnit"
-              id="pricePerUnit"
-              value={formData.pricePerUnit}
+              name="stockQuantity"
+              id="stockQuantity"
+              value={formData.stockQuantity}
               onChange={handleChange}
-              step="0.01"
               required
               className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
             />

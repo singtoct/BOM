@@ -1,8 +1,10 @@
 
-import React, { createContext, useReducer, useContext, ReactNode } from 'react';
+import React, { createContext, useReducer, useContext, ReactNode, useEffect } from 'react';
 import { State, Action, Material, Product, BomComponent } from '../types';
 
-const newMaterialsFromImage: Material[] = [
+const LOCAL_STORAGE_KEY = 'bom-app-data';
+
+const newMaterialsFromImage: Omit<Material, 'imageUrl' | 'stockQuantity'>[] = [
   { id: 'IMG-MAT-001', name: 'พลาสติกแพค BOX Gpower 4x4', unit: 'กิโลกรัม', pricePerUnit: 104.4 },
   { id: 'IMG-MAT-002', name: 'พลาสติกแพค BOX Gpower 2x4', unit: 'กิโลกรัม', pricePerUnit: 104.4 },
   { id: 'IMG-MAT-003', name: 'พลาสติกแพค BOX Gpower 4x4 ดำ', unit: 'กิโลกรัม', pricePerUnit: 104.4 },
@@ -105,38 +107,38 @@ const newMaterialsFromImage: Material[] = [
 ];
 
 const newProductsFromImage: Product[] = [
-    { id: 'IMG-PROD-101', name: 'บล็อคลอย G-Power 2x4', imageUrl: 'https://picsum.photos/seed/IMG-PROD-101/400/300', totalMaterialCost: 0 },
-    { id: 'IMG-PROD-102', name: 'บล็อคลอย G-Power 4x4', imageUrl: 'https://picsum.photos/seed/IMG-PROD-102/400/300', totalMaterialCost: 0 },
-    { id: 'IMG-PROD-103', name: 'บล็อคลอย G-Power 2x4B', imageUrl: 'https://picsum.photos/seed/IMG-PROD-103/400/300', totalMaterialCost: 0 },
-    { id: 'IMG-PROD-104', name: 'บล็อคลอย G-Power 4x4B', imageUrl: 'https://picsum.photos/seed/IMG-PROD-104/400/300', totalMaterialCost: 0 },
-    { id: 'IMG-PROD-105', name: 'บล็อคลอย CT 2x4', imageUrl: 'https://picsum.photos/seed/IMG-PROD-105/400/300', totalMaterialCost: 0 },
-    { id: 'IMG-PROD-106', name: 'บล็อคลอย CT 4x4', imageUrl: 'https://picsum.photos/seed/IMG-PROD-106/400/300', totalMaterialCost: 0 },
-    { id: 'IMG-PROD-107', name: 'บล็อคลอย CT 2x4B', imageUrl: 'https://picsum.photos/seed/IMG-PROD-107/400/300', totalMaterialCost: 0 },
-    { id: 'IMG-PROD-108', name: 'บล็อคลอย CT 4x4B', imageUrl: 'https://picsum.photos/seed/IMG-PROD-108/400/300', totalMaterialCost: 0 },
-    { id: 'IMG-PROD-109', name: 'ฝาหน้ากาก CT A-101', imageUrl: 'https://picsum.photos/seed/IMG-PROD-109/400/300', totalMaterialCost: 0 },
-    { id: 'IMG-PROD-110', name: 'ฝาหน้ากาก CT A-102', imageUrl: 'https://picsum.photos/seed/IMG-PROD-110/400/300', totalMaterialCost: 0 },
-    { id: 'IMG-PROD-111', name: 'ฝาหน้ากาก CT A-103', imageUrl: 'https://picsum.photos/seed/IMG-PROD-111/400/300', totalMaterialCost: 0 },
-    { id: 'IMG-PROD-112', name: 'ฝาหน้ากาก CT A-1022', imageUrl: 'https://picsum.photos/seed/IMG-PROD-112/400/300', totalMaterialCost: 0 },
-    { id: 'IMG-PROD-113', name: 'ฝาหน้ากาก CT A-104', imageUrl: 'https://picsum.photos/seed/IMG-PROD-113/400/300', totalMaterialCost: 0 },
-    { id: 'IMG-PROD-114', name: 'ฝาหน้ากาก CT A-106', imageUrl: 'https://picsum.photos/seed/IMG-PROD-114/400/300', totalMaterialCost: 0 },
-    { id: 'IMG-PROD-115', name: 'บล็อคลอย BEWON 2x4', imageUrl: 'https://picsum.photos/seed/IMG-PROD-115/400/300', totalMaterialCost: 0 },
-    { id: 'IMG-PROD-116', name: 'บล็อคลอย BEWON 4x4', imageUrl: 'https://picsum.photos/seed/IMG-PROD-116/400/300', totalMaterialCost: 0 },
-    { id: 'IMG-PROD-117', name: 'ฝาหน้ากาก BEWON 201', imageUrl: 'https://picsum.photos/seed/IMG-PROD-117/400/300', totalMaterialCost: 0 },
-    { id: 'IMG-PROD-118', name: 'ฝาหน้ากาก BEWON 202', imageUrl: 'https://picsum.photos/seed/IMG-PROD-118/400/300', totalMaterialCost: 0 },
-    { id: 'IMG-PROD-119', name: 'ฝาหน้ากาก BEWON 203', imageUrl: 'https://picsum.photos/seed/IMG-PROD-119/400/300', totalMaterialCost: 0 },
-    { id: 'IMG-PROD-120', name: 'ฝาหน้ากาก BEWON 222', imageUrl: 'https://picsum.photos/seed/IMG-PROD-120/400/300', totalMaterialCost: 0 },
-    { id: 'IMG-PROD-121', name: 'ฝาหน้ากาก BEWON 604', imageUrl: 'https://picsum.photos/seed/IMG-PROD-121/400/300', totalMaterialCost: 0 },
-    { id: 'IMG-PROD-122', name: 'ฝาหน้ากาก BEWON 606', imageUrl: 'https://picsum.photos/seed/IMG-PROD-122/400/300', totalMaterialCost: 0 },
-    { id: 'IMG-PROD-123', name: 'ฝาเทาใส CHONG-2 PC', imageUrl: 'https://picsum.photos/seed/IMG-PROD-123/400/300', totalMaterialCost: 0 },
-    { id: 'IMG-PROD-124', name: 'ฝาเทาใส CHONG-4 PC', imageUrl: 'https://picsum.photos/seed/IMG-PROD-124/400/300', totalMaterialCost: 0 },
-    { id: 'IMG-PROD-125', name: 'ฝาเทาใส CHONG-6 PC', imageUrl: 'https://picsum.photos/seed/IMG-PROD-125/400/300', totalMaterialCost: 0 },
-    { id: 'IMG-PROD-126', name: 'ฝาเทาใส CHONG-8 PC', imageUrl: 'https://picsum.photos/seed/IMG-PROD-126/400/300', totalMaterialCost: 0 },
-    { id: 'IMG-PROD-127', name: 'ฝาเทาใส CHONG-10 PC', imageUrl: 'https://picsum.photos/seed/IMG-PROD-127/400/300', totalMaterialCost: 0 },
-    { id: 'IMG-PROD-128', name: 'ฝาขาว CHONG-2 ABS', imageUrl: 'https://picsum.photos/seed/IMG-PROD-128/400/300', totalMaterialCost: 0 },
-    { id: 'IMG-PROD-129', name: 'ฝาขาว CHONG-4 ABS', imageUrl: 'https://picsum.photos/seed/IMG-PROD-129/400/300', totalMaterialCost: 0 },
-    { id: 'IMG-PROD-130', name: 'ฝาขาว CHONG-6 ABS', imageUrl: 'https://picsum.photos/seed/IMG-PROD-130/400/300', totalMaterialCost: 0 },
-    { id: 'IMG-PROD-131', name: 'ฝาขาว CHONG-8 ABS', imageUrl: 'https://picsum.photos/seed/IMG-PROD-131/400/300', totalMaterialCost: 0 },
-    { id: 'IMG-PROD-132', name: 'ฝาขาว CHONG-10 ABS', imageUrl: 'https://picsum.photos/seed/IMG-PROD-132/400/300', totalMaterialCost: 0 },
+    { id: 'IMG-PROD-101', name: 'บล็อคลอย G-Power 2x4', imageUrl: 'https://picsum.photos/seed/IMG-PROD-101/400/300', totalMaterialCost: 0, sellingPrice: 0 },
+    { id: 'IMG-PROD-102', name: 'บล็อคลอย G-Power 4x4', imageUrl: 'https://picsum.photos/seed/IMG-PROD-102/400/300', totalMaterialCost: 0, sellingPrice: 0 },
+    { id: 'IMG-PROD-103', name: 'บล็อคลอย G-Power 2x4B', imageUrl: 'https://picsum.photos/seed/IMG-PROD-103/400/300', totalMaterialCost: 0, sellingPrice: 0 },
+    { id: 'IMG-PROD-104', name: 'บล็อคลอย G-Power 4x4B', imageUrl: 'https://picsum.photos/seed/IMG-PROD-104/400/300', totalMaterialCost: 0, sellingPrice: 0 },
+    { id: 'IMG-PROD-105', name: 'บล็อคลอย CT 2x4', imageUrl: 'https://picsum.photos/seed/IMG-PROD-105/400/300', totalMaterialCost: 0, sellingPrice: 0 },
+    { id: 'IMG-PROD-106', name: 'บล็อคลอย CT 4x4', imageUrl: 'https://picsum.photos/seed/IMG-PROD-106/400/300', totalMaterialCost: 0, sellingPrice: 0 },
+    { id: 'IMG-PROD-107', name: 'บล็อคลอย CT 2x4B', imageUrl: 'https://picsum.photos/seed/IMG-PROD-107/400/300', totalMaterialCost: 0, sellingPrice: 0 },
+    { id: 'IMG-PROD-108', name: 'บล็อคลอย CT 4x4B', imageUrl: 'https://picsum.photos/seed/IMG-PROD-108/400/300', totalMaterialCost: 0, sellingPrice: 0 },
+    { id: 'IMG-PROD-109', name: 'ฝาหน้ากาก CT A-101', imageUrl: 'https://picsum.photos/seed/IMG-PROD-109/400/300', totalMaterialCost: 0, sellingPrice: 0 },
+    { id: 'IMG-PROD-110', name: 'ฝาหน้ากาก CT A-102', imageUrl: 'https://picsum.photos/seed/IMG-PROD-110/400/300', totalMaterialCost: 0, sellingPrice: 0 },
+    { id: 'IMG-PROD-111', name: 'ฝาหน้ากาก CT A-103', imageUrl: 'https://picsum.photos/seed/IMG-PROD-111/400/300', totalMaterialCost: 0, sellingPrice: 0 },
+    { id: 'IMG-PROD-112', name: 'ฝาหน้ากาก CT A-1022', imageUrl: 'https://picsum.photos/seed/IMG-PROD-112/400/300', totalMaterialCost: 0, sellingPrice: 0 },
+    { id: 'IMG-PROD-113', name: 'ฝาหน้ากาก CT A-104', imageUrl: 'https://picsum.photos/seed/IMG-PROD-113/400/300', totalMaterialCost: 0, sellingPrice: 0 },
+    { id: 'IMG-PROD-114', name: 'ฝาหน้ากาก CT A-106', imageUrl: 'https://picsum.photos/seed/IMG-PROD-114/400/300', totalMaterialCost: 0, sellingPrice: 0 },
+    { id: 'IMG-PROD-115', name: 'บล็อคลอย BEWON 2x4', imageUrl: 'https://picsum.photos/seed/IMG-PROD-115/400/300', totalMaterialCost: 0, sellingPrice: 0 },
+    { id: 'IMG-PROD-116', name: 'บล็อคลอย BEWON 4x4', imageUrl: 'https://picsum.photos/seed/IMG-PROD-116/400/300', totalMaterialCost: 0, sellingPrice: 0 },
+    { id: 'IMG-PROD-117', name: 'ฝาหน้ากาก BEWON 201', imageUrl: 'https://picsum.photos/seed/IMG-PROD-117/400/300', totalMaterialCost: 0, sellingPrice: 0 },
+    { id: 'IMG-PROD-118', name: 'ฝาหน้ากาก BEWON 202', imageUrl: 'https://picsum.photos/seed/IMG-PROD-118/400/300', totalMaterialCost: 0, sellingPrice: 0 },
+    { id: 'IMG-PROD-119', name: 'ฝาหน้ากาก BEWON 203', imageUrl: 'https://picsum.photos/seed/IMG-PROD-119/400/300', totalMaterialCost: 0, sellingPrice: 0 },
+    { id: 'IMG-PROD-120', name: 'ฝาหน้ากาก BEWON 222', imageUrl: 'https://picsum.photos/seed/IMG-PROD-120/400/300', totalMaterialCost: 0, sellingPrice: 0 },
+    { id: 'IMG-PROD-121', name: 'ฝาหน้ากาก BEWON 604', imageUrl: 'https://picsum.photos/seed/IMG-PROD-121/400/300', totalMaterialCost: 0, sellingPrice: 0 },
+    { id: 'IMG-PROD-122', name: 'ฝาหน้ากาก BEWON 606', imageUrl: 'https://picsum.photos/seed/IMG-PROD-122/400/300', totalMaterialCost: 0, sellingPrice: 0 },
+    { id: 'IMG-PROD-123', name: 'ฝาเทาใส CHONG-2 PC', imageUrl: 'https://picsum.photos/seed/IMG-PROD-123/400/300', totalMaterialCost: 0, sellingPrice: 0 },
+    { id: 'IMG-PROD-124', name: 'ฝาเทาใส CHONG-4 PC', imageUrl: 'https://picsum.photos/seed/IMG-PROD-124/400/300', totalMaterialCost: 0, sellingPrice: 0 },
+    { id: 'IMG-PROD-125', name: 'ฝาเทาใส CHONG-6 PC', imageUrl: 'https://picsum.photos/seed/IMG-PROD-125/400/300', totalMaterialCost: 0, sellingPrice: 0 },
+    { id: 'IMG-PROD-126', name: 'ฝาเทาใส CHONG-8 PC', imageUrl: 'https://picsum.photos/seed/IMG-PROD-126/400/300', totalMaterialCost: 0, sellingPrice: 0 },
+    { id: 'IMG-PROD-127', name: 'ฝาเทาใส CHONG-10 PC', imageUrl: 'https://picsum.photos/seed/IMG-PROD-127/400/300', totalMaterialCost: 0, sellingPrice: 0 },
+    { id: 'IMG-PROD-128', name: 'ฝาขาว CHONG-2 ABS', imageUrl: 'https://picsum.photos/seed/IMG-PROD-128/400/300', totalMaterialCost: 0, sellingPrice: 0 },
+    { id: 'IMG-PROD-129', name: 'ฝาขาว CHONG-4 ABS', imageUrl: 'https://picsum.photos/seed/IMG-PROD-129/400/300', totalMaterialCost: 0, sellingPrice: 0 },
+    { id: 'IMG-PROD-130', name: 'ฝาขาว CHONG-6 ABS', imageUrl: 'https://picsum.photos/seed/IMG-PROD-130/400/300', totalMaterialCost: 0, sellingPrice: 0 },
+    { id: 'IMG-PROD-131', name: 'ฝาขาว CHONG-8 ABS', imageUrl: 'https://picsum.photos/seed/IMG-PROD-131/400/300', totalMaterialCost: 0, sellingPrice: 0 },
+    { id: 'IMG-PROD-132', name: 'ฝาขาว CHONG-10 ABS', imageUrl: 'https://picsum.photos/seed/IMG-PROD-132/400/300', totalMaterialCost: 0, sellingPrice: 0 },
 ];
 const newBomComponentsFromImage: BomComponent[] = [
     { id: 'IMG-PROD-101-PP-001', productId: 'IMG-PROD-101', materialId: 'PP-001', quantity: 0.0458 },
@@ -207,16 +209,16 @@ const newBomComponentsFromImage: BomComponent[] = [
 
 const initialState: State = {
   materials: [
-    { id: 'PP-001', name: 'เม็ดพลาสติก PP สีดำ', unit: 'กิโลกรัม', pricePerUnit: 55.50 },
-    { id: 'ABS-002', name: 'เม็ดพลาสติก ABS สีขาว', unit: 'กิโลกรัม', pricePerUnit: 82.00 },
-    { id: 'COLOR-BLUE', name: 'แม่สีน้ำเงิน', unit: 'กรัม', pricePerUnit: 0.75 },
-    { id: 'SCREW-M3', name: 'สกรู M3', unit: 'ชิ้น', pricePerUnit: 1.25 },
-    { id: 'OTHER-COSTS', name: 'ต้นทุนอื่นๆ/ส่วนต่าง', unit: 'เหมา', pricePerUnit: 1 },
-    ...newMaterialsFromImage
+    { id: 'PP-001', name: 'เม็ดพลาสติก PP สีดำ', unit: 'กิโลกรัม', pricePerUnit: 55.50, stockQuantity: 500 },
+    { id: 'ABS-002', name: 'เม็ดพลาสติก ABS สีขาว', unit: 'กิโลกรัม', pricePerUnit: 82.00, stockQuantity: 350 },
+    { id: 'COLOR-BLUE', name: 'แม่สีน้ำเงิน', unit: 'กรัม', pricePerUnit: 0.75, stockQuantity: 10000 },
+    { id: 'SCREW-M3', name: 'สกรู M3', unit: 'ชิ้น', pricePerUnit: 1.25, stockQuantity: 25000 },
+    { id: 'OTHER-COSTS', name: 'ต้นทุนอื่นๆ/ส่วนต่าง', unit: 'เหมา', pricePerUnit: 1, stockQuantity: 999999 },
+    ...newMaterialsFromImage.map(m => ({...m, stockQuantity: Math.random() > 0.5 ? 1000 : 2000 }))
   ],
   products: [
-    { id: 'PROD-001', name: 'ฝาครอบมอเตอร์', imageUrl: 'https://picsum.photos/seed/PROD-001/400/300', totalMaterialCost: 0 },
-    { id: 'PROD-002', name: 'ฐานยึดอุปกรณ์', imageUrl: 'https://picsum.photos/seed/PROD-002/400/300', totalMaterialCost: 0 },
+    { id: 'PROD-001', name: 'ฝาครอบมอเตอร์', imageUrl: 'https://picsum.photos/seed/PROD-001/400/300', totalMaterialCost: 0, sellingPrice: 0 },
+    { id: 'PROD-002', name: 'ฐานยึดอุปกรณ์', imageUrl: 'https://picsum.photos/seed/PROD-002/400/300', totalMaterialCost: 0, sellingPrice: 0 },
     ...newProductsFromImage
   ],
   bomComponents: [
@@ -239,6 +241,7 @@ const calculateAllProductCosts = (products: Product[], bomComponents: BomCompone
             }
             return sum;
         }, 0);
+        // Keep existing sellingPrice when recalculating cost
         return { ...product, totalMaterialCost: totalCost };
     });
 };
@@ -271,7 +274,7 @@ const bomReducer = (state: State, action: Action): State => {
     }
 
     case 'ADD_PRODUCT':
-      return { ...state, products: [...state.products, { ...action.payload, totalMaterialCost: 0 }] };
+      return { ...state, products: [...state.products, action.payload] };
 
     case 'UPDATE_PRODUCT':
       return { ...state, products: state.products.map(p => p.id === action.payload.id ? { ...p, ...action.payload } : p) };
@@ -349,24 +352,49 @@ const bomReducer = (state: State, action: Action): State => {
   }
 };
 
+const initializer = (): State => {
+  let stateToInitialize: State;
+  try {
+    const storedState = localStorage.getItem(LOCAL_STORAGE_KEY);
+    if (storedState) {
+        stateToInitialize = JSON.parse(storedState);
+    } else {
+        stateToInitialize = initialState;
+    }
+  } catch (error) {
+    console.error("Failed to parse state from localStorage, using initial data.", error);
+    stateToInitialize = initialState;
+  }
 
-// --- Initialize state with calculated costs ---
-const initialCalculatedState = {
-    ...initialState,
-    products: calculateAllProductCosts(initialState.products, initialState.bomComponents, initialState.materials)
+  // Ensure all materials have an image URL and stock quantity for consistent display
+  stateToInitialize.materials = stateToInitialize.materials.map(material => ({
+    ...material,
+    imageUrl: material.imageUrl || `https://picsum.photos/seed/${material.id}/200`,
+    stockQuantity: material.stockQuantity ?? 0,
+  }));
+  
+  // Recalculate costs on load to ensure data integrity
+  const recalculatedProducts = calculateAllProductCosts(stateToInitialize.products, stateToInitialize.bomComponents, stateToInitialize.materials);
+  return { ...stateToInitialize, products: recalculatedProducts };
 };
 
-const BomContext = createContext<{ state: State; dispatch: React.Dispatch<Action> }>({
-  state: initialCalculatedState,
-  dispatch: () => null,
-});
+const BomContext = createContext<{ state: State; dispatch: React.Dispatch<Action> } | undefined>(undefined);
+
 
 type BomProviderProps = {
     children: ReactNode;
 };
 
 export const BomProvider = ({ children }: BomProviderProps) => {
-  const [state, dispatch] = useReducer(bomReducer, initialCalculatedState);
+  const [state, dispatch] = useReducer(bomReducer, undefined, initializer);
+
+  useEffect(() => {
+    try {
+        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(state));
+    } catch (error) {
+        console.error("Failed to save state to localStorage", error);
+    }
+  }, [state]);
 
   return (
     <BomContext.Provider value={{ state, dispatch }}>
@@ -376,5 +404,9 @@ export const BomProvider = ({ children }: BomProviderProps) => {
 };
 
 export const useBom = () => {
-  return useContext(BomContext);
+  const context = useContext(BomContext);
+  if (context === undefined) {
+    throw new Error('useBom must be used within a BomProvider');
+  }
+  return context;
 };

@@ -3,36 +3,91 @@ import React, { useState } from 'react';
 import { useBom } from '../context/BomContext';
 import { Product, View } from '../types';
 import Modal from '../components/Modal';
-import { PlusIcon } from '../components/icons';
+import { PlusIcon, GridIcon, LayoutGridIcon, ListIcon } from '../components/icons';
 
 interface ProductsPageProps {
   setView: React.Dispatch<React.SetStateAction<View>>;
 }
 
-const ProductCard = ({ product, onClick }: { product: Product; onClick: () => void }) => (
-  <div
-    onClick={onClick}
-    className="bg-white rounded-lg shadow-md overflow-hidden cursor-pointer transform hover:-translate-y-1 transition-transform duration-300"
-  >
-    <img src={product.imageUrl} alt={product.name} className="w-full h-48 object-cover" />
-    <div className="p-4">
-      <h3 className="font-semibold text-lg text-gray-800">{product.name}</h3>
-      <p className="text-sm text-gray-500 mb-2">{product.id}</p>
-      <p className="text-sm font-medium text-gray-600">ต้นทุนวัตถุดิบรวม:</p>
-      <p className="text-xl font-bold text-green-600">{product.totalMaterialCost.toLocaleString('th-TH', { style: 'currency', currency: 'THB' })}</p>
+type ViewMode = 'large' | 'small' | 'list';
+
+interface ProductCardProps {
+  product: Product;
+  onClick: () => void;
+  viewMode: ViewMode;
+}
+
+const ProductCard = ({ product, onClick, viewMode }: ProductCardProps) => {
+  const profit = product.sellingPrice - product.totalMaterialCost;
+  const profitColor = profit >= 0 ? 'text-green-600' : 'text-red-600';
+
+  if (viewMode === 'list') {
+    return (
+      <div onClick={onClick} className="bg-white rounded-lg shadow-sm overflow-hidden cursor-pointer hover:shadow-md transition-shadow duration-300 flex items-center p-3 w-full">
+        <img src={product.imageUrl} alt={product.name} className="w-16 h-16 object-cover rounded-md flex-shrink-0" />
+        <div className="flex-grow ml-4">
+          <h3 className="font-semibold text-md text-gray-800 truncate" title={product.name}>{product.name}</h3>
+          <p className="text-sm text-gray-500">{product.id}</p>
+        </div>
+        <div className="hidden md:flex items-center space-x-6 text-right pr-4">
+            <div className="w-28">
+                <p className="text-xs text-gray-500">ต้นทุน</p>
+                <p className="text-sm font-bold text-gray-800">{product.totalMaterialCost.toLocaleString('th-TH', { style: 'currency', currency: 'THB' })}</p>
+            </div>
+            <div className="w-28">
+                <p className="text-xs text-gray-500">ราคาขาย</p>
+                <p className="text-sm font-bold text-blue-600">{product.sellingPrice.toLocaleString('th-TH', { style: 'currency', currency: 'THB' })}</p>
+            </div>
+            <div className="w-28">
+                <p className="text-xs text-gray-500">กำไร</p>
+                <p className={`text-sm font-bold ${profitColor}`}>{profit.toLocaleString('th-TH', { style: 'currency', currency: 'THB' })}</p>
+            </div>
+        </div>
+      </div>
+    );
+  }
+
+  const isSmall = viewMode === 'small';
+
+  return (
+    <div
+      onClick={onClick}
+      className="bg-white rounded-lg shadow-md overflow-hidden cursor-pointer transform hover:-translate-y-1 transition-transform duration-300"
+    >
+      <img src={product.imageUrl} alt={product.name} className={`w-full ${isSmall ? 'h-32' : 'h-48'} object-cover`} />
+      <div className={isSmall ? 'p-2' : 'p-4'}>
+        <h3 className={`${isSmall ? 'text-base' : 'text-lg'} font-semibold text-gray-800 truncate`} title={product.name}>{product.name}</h3>
+        {!isSmall && <p className="text-sm text-gray-500 mb-2">{product.id}</p>}
+        <div className={`mt-2 ${isSmall ? 'space-y-1' : 'space-y-2'}`}>
+            <div>
+                <p className="text-xs text-gray-500">ต้นทุน</p>
+                <p className={`${isSmall ? 'text-sm' : 'text-md'} font-bold text-gray-800`}>{product.totalMaterialCost.toLocaleString('th-TH', { style: 'currency', currency: 'THB', maximumFractionDigits: 0 })}</p>
+            </div>
+             <div>
+                <p className="text-xs text-gray-500">ราคาขาย</p>
+                <p className={`${isSmall ? 'text-sm' : 'text-md'} font-bold text-blue-600`}>{product.sellingPrice.toLocaleString('th-TH', { style: 'currency', currency: 'THB', maximumFractionDigits: 0 })}</p>
+            </div>
+            <div>
+                <p className="text-xs text-gray-500">กำไร</p>
+                <p className={`${isSmall ? 'text-sm' : 'text-md'} font-bold ${profitColor}`}>{profit.toLocaleString('th-TH', { style: 'currency', currency: 'THB', maximumFractionDigits: 0 })}</p>
+            </div>
+        </div>
+      </div>
     </div>
-  </div>
-);
+  );
+};
+
 
 const ProductsPage = ({ setView }: ProductsPageProps) => {
   const { state, dispatch } = useBom();
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [formData, setFormData] = useState<Omit<Product, 'id' | 'totalMaterialCost'>>({ name: '', imageUrl: '' });
+  const [formData, setFormData] = useState<Omit<Product, 'id' | 'totalMaterialCost'>>({ name: '', imageUrl: '', sellingPrice: 0 });
   const [newId, setNewId] = useState('');
   const [pasteData, setPasteData] = useState('');
+  const [viewMode, setViewMode] = useState<ViewMode>('large');
 
   const handleOpenModal = () => {
-    setFormData({ name: '', imageUrl: '' });
+    setFormData({ name: '', imageUrl: '', sellingPrice: 0 });
     setNewId('');
     setPasteData('');
     setIsModalOpen(true);
@@ -43,7 +98,11 @@ const ProductsPage = ({ setView }: ProductsPageProps) => {
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
+    const { name, value } = e.target;
+    setFormData(prev => ({ 
+        ...prev, 
+        [name]: name === 'sellingPrice' ? parseFloat(value) || 0 : value 
+    }));
   };
 
   const handleIdChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -79,10 +138,17 @@ const ProductsPage = ({ setView }: ProductsPageProps) => {
       id: newId,
       name: formData.name,
       imageUrl: formData.imageUrl || `https://picsum.photos/seed/${newId}/400/300`,
-      totalMaterialCost: 0
+      totalMaterialCost: 0,
+      sellingPrice: formData.sellingPrice
     };
     dispatch({ type: 'ADD_PRODUCT', payload: newProduct });
     handleCloseModal();
+  };
+  
+  const viewClasses: Record<ViewMode, string> = {
+    large: 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6',
+    small: 'grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4',
+    list: 'flex flex-col gap-3',
   };
 
 
@@ -98,9 +164,25 @@ const ProductsPage = ({ setView }: ProductsPageProps) => {
           เพิ่มสินค้า
         </button>
       </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+
+       <div className="bg-white p-2 rounded-lg shadow-sm mb-6 flex items-center justify-between">
+          <h3 className="text-md font-semibold text-gray-700 pl-2">มุมมอง</h3>
+          <div className="flex items-center space-x-1">
+             <button title="Large Grid View" onClick={() => setViewMode('large')} className={`p-2 rounded-md ${viewMode === 'large' ? 'bg-blue-100 text-blue-600' : 'text-gray-500 hover:bg-gray-100'}`}>
+                <GridIcon className="h-5 w-5" />
+            </button>
+            <button title="Small Grid View" onClick={() => setViewMode('small')} className={`p-2 rounded-md ${viewMode === 'small' ? 'bg-blue-100 text-blue-600' : 'text-gray-500 hover:bg-gray-100'}`}>
+                <LayoutGridIcon className="h-5 w-5" />
+            </button>
+            <button title="List View" onClick={() => setViewMode('list')} className={`p-2 rounded-md ${viewMode === 'list' ? 'bg-blue-100 text-blue-600' : 'text-gray-500 hover:bg-gray-100'}`}>
+                <ListIcon className="h-5 w-5" />
+            </button>
+          </div>
+      </div>
+
+      <div className={viewClasses[viewMode]}>
         {state.products.map(product => (
-          <ProductCard key={product.id} product={product} onClick={() => setView({ type: 'product-detail', productId: product.id })} />
+          <ProductCard key={product.id} product={product} onClick={() => setView({ type: 'product-detail', productId: product.id })} viewMode={viewMode}/>
         ))}
       </div>
 
@@ -140,6 +222,19 @@ const ProductsPage = ({ setView }: ProductsPageProps) => {
               id="name"
               value={formData.name}
               onChange={handleChange}
+              required
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+            />
+          </div>
+           <div>
+            <label htmlFor="sellingPrice" className="block text-sm font-medium text-gray-700">ราคาขาย (Selling Price)</label>
+            <input
+              type="number"
+              name="sellingPrice"
+              id="sellingPrice"
+              value={formData.sellingPrice}
+              onChange={handleChange}
+              step="0.01"
               required
               className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
             />

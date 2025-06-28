@@ -1,7 +1,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { useBom } from '../context/BomContext';
-import { View, BomComponent, BomComponentWithDetails } from '../types';
+import { View, BomComponent, BomComponentWithDetails, Product } from '../types';
 import Modal from '../components/Modal';
 import { PlusIcon, EditIcon, TrashIcon, PackageIcon, CopyIcon } from '../components/icons';
 
@@ -23,9 +23,13 @@ const ProductDetailPage = ({ productId, setView }: ProductDetailPageProps) => {
   const [isCopyModalOpen, setIsCopyModalOpen] = useState(false);
   const [sourceProductToCopy, setSourceProductToCopy] = useState('');
 
-
   const product = useMemo(() => state.products.find(p => p.id === productId), [state.products, productId]);
   
+  // State for Editing Product Details
+  const [isEditingProduct, setIsEditingProduct] = useState(false);
+  const [productFormData, setProductFormData] = useState<Omit<Product, 'id' | 'totalMaterialCost'>>({ name: '', sellingPrice: 0, imageUrl: '' });
+
+
   const bomComponentsWithDetails: BomComponentWithDetails[] = useMemo(() => {
     return state.bomComponents
       .filter(bom => bom.productId === productId)
@@ -51,6 +55,9 @@ const ProductDetailPage = ({ productId, setView }: ProductDetailPageProps) => {
       </div>
     );
   }
+  
+  const profit = product.sellingPrice - product.totalMaterialCost;
+  const profitColor = profit >= 0 ? 'text-green-600' : 'text-red-600';
   
   const availableMaterials = state.materials.filter(
       material => !bomComponentsWithDetails.some(bom => bom.materialId === material.id && bom.id !== editingComponent?.id)
@@ -128,6 +135,40 @@ const ProductDetailPage = ({ productId, setView }: ProductDetailPageProps) => {
       setSourceProductToCopy('');
   };
 
+  // --- Product Edit Handlers ---
+  const handleEditProductClick = () => {
+    setProductFormData({
+      name: product.name,
+      sellingPrice: product.sellingPrice,
+      imageUrl: product.imageUrl,
+    });
+    setIsEditingProduct(true);
+  };
+
+  const handleCancelEditProduct = () => {
+    setIsEditingProduct(false);
+  };
+
+  const handleProductFormChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setProductFormData(prev => ({
+      ...prev,
+      [name]: name === 'sellingPrice' ? parseFloat(value) || 0 : value,
+    }));
+  };
+
+  const handleSaveProduct = () => {
+    dispatch({
+      type: 'UPDATE_PRODUCT',
+      payload: {
+        id: product.id,
+        name: productFormData.name,
+        sellingPrice: productFormData.sellingPrice,
+        imageUrl: productFormData.imageUrl,
+      },
+    });
+    setIsEditingProduct(false);
+  };
 
   return (
     <div className="container mx-auto">
@@ -135,22 +176,65 @@ const ProductDetailPage = ({ productId, setView }: ProductDetailPageProps) => {
       
       <div className="bg-white shadow-lg rounded-lg p-6 mb-6">
         <div className="flex flex-col md:flex-row gap-6">
-          <img src={product.imageUrl} alt={product.name} className="w-full md:w-1/3 h-auto object-cover rounded-lg"/>
+          <img src={isEditingProduct ? productFormData.imageUrl : product.imageUrl} alt={product.name} className="w-full md:w-1/3 h-auto object-cover rounded-lg"/>
           <div className="flex-1">
-            <div className="flex justify-between items-start">
-              <div>
-                <h1 className="text-3xl font-bold text-gray-800">{product.name}</h1>
-                <p className="text-md text-gray-500 mb-4">{product.id}</p>
+            <div className="flex justify-between items-start mb-4">
+               {isEditingProduct ? (
+                  <div className="w-full mr-4">
+                      <label htmlFor="productName" className="block text-sm font-medium text-gray-700">ชื่อสินค้า</label>
+                      <input type="text" id="productName" name="name" value={productFormData.name} onChange={handleProductFormChange} className="text-3xl font-bold text-gray-800 w-full border-b-2 border-blue-300 focus:border-blue-500 outline-none" />
+                      <p className="text-md text-gray-500 mt-1">{product.id}</p>
+                  </div>
+              ) : (
+                  <div>
+                      <h1 className="text-3xl font-bold text-gray-800">{product.name}</h1>
+                      <p className="text-md text-gray-500 mb-4">{product.id}</p>
+                  </div>
+              )}
+              <div className="flex items-center space-x-2 flex-shrink-0">
+                  {!isEditingProduct && (
+                      <button onClick={handleEditProductClick} className="text-gray-500 hover:text-blue-700 p-2 rounded-full hover:bg-blue-100 transition-colors" aria-label="Edit Product">
+                          <EditIcon className="h-5 w-5"/>
+                      </button>
+                  )}
+                  <button onClick={handleDeleteProduct} className="text-red-500 hover:text-red-700 p-2 rounded-full hover:bg-red-100 transition-colors" aria-label="Delete Product">
+                      <TrashIcon className="h-5 w-5"/>
+                  </button>
               </div>
-               <button onClick={handleDeleteProduct} className="text-red-500 hover:text-red-700 p-2 rounded-full hover:bg-red-100 transition-colors">
-                  <TrashIcon className="h-5 w-5"/>
-              </button>
             </div>
+
+             {isEditingProduct && (
+                <div className="mb-4">
+                    <label htmlFor="imageUrl" className="block text-sm font-medium text-gray-700">Image URL</label>
+                    <input type="text" name="imageUrl" id="imageUrl" value={productFormData.imageUrl} onChange={handleProductFormChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" />
+                </div>
+            )}
             
-            <div className="bg-green-50 border-l-4 border-green-500 text-green-800 p-4 rounded-r-lg">
-              <p className="text-sm font-semibold">ต้นทุนวัตถุดิบรวม (Total Material Cost)</p>
-              <p className="text-4xl font-extrabold">{product.totalMaterialCost.toLocaleString('th-TH', { style: 'currency', currency: 'THB' })}</p>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
+                <div className="bg-gray-50 p-4 rounded-lg">
+                    <p className="text-sm font-semibold text-gray-600">ต้นทุนวัตถุดิบรวม</p>
+                    <p className="text-2xl font-bold text-gray-800">{product.totalMaterialCost.toLocaleString('th-TH', { style: 'currency', currency: 'THB' })}</p>
+                </div>
+                <div className="bg-blue-50 p-4 rounded-lg">
+                    <p className="text-sm font-semibold text-blue-800">ราคาขาย</p>
+                    {isEditingProduct ? (
+                         <input type="number" name="sellingPrice" value={productFormData.sellingPrice} onChange={handleProductFormChange} className="text-2xl font-bold text-blue-600 bg-transparent w-full text-center border-b-2 border-blue-300 focus:border-blue-500 outline-none" step="0.01"/>
+                    ) : (
+                        <p className="text-2xl font-bold text-blue-600">{product.sellingPrice.toLocaleString('th-TH', { style: 'currency', currency: 'THB' })}</p>
+                    )}
+                </div>
+                <div className={`bg-opacity-20 p-4 rounded-lg ${profit >= 0 ? 'bg-green-200' : 'bg-red-200'}`}>
+                    <p className={`text-sm font-semibold ${profit >= 0 ? 'text-green-800' : 'text-red-800'}`}>กำไร</p>
+                    <p className={`text-2xl font-bold ${profitColor}`}>{profit.toLocaleString('th-TH', { style: 'currency', currency: 'THB' })}</p>
+                </div>
             </div>
+
+            {isEditingProduct && (
+                <div className="flex justify-end space-x-2 mt-4">
+                    <button onClick={handleCancelEditProduct} className="bg-gray-200 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-300">ยกเลิก</button>
+                    <button onClick={handleSaveProduct} className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">บันทึก</button>
+                </div>
+            )}
           </div>
         </div>
       </div>

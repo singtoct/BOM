@@ -4,13 +4,16 @@ export interface Material {
   name: string;
   unit: string;
   pricePerUnit: number;
+  imageUrl?: string;
+  stockQuantity: number;
 }
 
 export interface Product {
-  id: string;
+  id:string;
   name: string;
   imageUrl: string;
   totalMaterialCost: number;
+  sellingPrice: number;
 }
 
 export interface BomComponent {
@@ -30,14 +33,15 @@ export interface BomComponentWithDetails extends BomComponent {
 export type View = 
   | { type: 'products' }
   | { type: 'materials' }
-  | { type: 'product-detail'; productId: string };
+  | { type: 'product-detail'; productId: string }
+  | { type: 'calculator' };
 
 export type Action =
   | { type: 'ADD_MATERIAL'; payload: Material }
   | { type: 'UPDATE_MATERIAL'; payload: Material }
   | { type: 'DELETE_MATERIAL'; payload: string } // id
   | { type: 'ADD_PRODUCT'; payload: Product }
-  | { type: 'UPDATE_PRODUCT'; payload: Product }
+  | { type: 'UPDATE_PRODUCT'; payload: Partial<Product> & { id: string } }
   | { type: 'DELETE_PRODUCT'; payload: string } // id
   | { type: 'ADD_BOM_COMPONENT'; payload: BomComponent }
   | { type: 'UPDATE_BOM_COMPONENT'; payload: BomComponent }

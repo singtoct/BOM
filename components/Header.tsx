@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { View } from '../types';
-import { BoxIcon } from './icons';
+import { BoxIcon, CalculatorIcon } from './icons';
 
 interface HeaderProps {
   setView: React.Dispatch<React.SetStateAction<View>>;
@@ -29,6 +29,13 @@ const Header = ({ setView }: HeaderProps) => {
                   className="text-gray-600 hover:bg-gray-100 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
                 >
                   วัตถุดิบ (Materials)
+                </button>
+                <button
+                  onClick={() => setView({ type: 'calculator' })}
+                  className="text-gray-600 hover:bg-gray-100 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium flex items-center"
+                >
+                  <CalculatorIcon className="h-5 w-5 mr-2" />
+                  เครื่องคำนวณการผลิต
                 </button>
               </div>
             </div>

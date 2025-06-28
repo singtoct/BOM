@@ -5,6 +5,7 @@ import Header from './components/Header';
 import ProductsPage from './pages/ProductsPage';
 import MaterialsPage from './pages/MaterialsPage';
 import ProductDetailPage from './pages/ProductDetailPage';
+import ProductionCalculatorPage from './pages/ProductionCalculatorPage';
 
 const App = () => {
   const [view, setView] = useState<View>({ type: 'products' });
@@ -17,6 +18,8 @@ const App = () => {
         return <MaterialsPage />;
       case 'product-detail':
         return <ProductDetailPage productId={view.productId} setView={setView} />;
+      case 'calculator':
+        return <ProductionCalculatorPage />;
       default:
         return <ProductsPage setView={setView} />;
     }
