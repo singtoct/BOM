@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bom-app-cache-v1';
+const CACHE_NAME = 'bom-app-cache-v2';
 const FILES_TO_CACHE = [
   '/',
   '/index.html',
@@ -19,8 +19,8 @@ const FILES_TO_CACHE = [
   '/pages/ProductionCalculatorPage.tsx',
   'https://cdn.tailwindcss.com',
   'https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap',
-  'https://esm.sh/react@18.2.0',
-  'https://esm.sh/react-dom@18.2.0/client',
+  'https://esm.sh/react@19',
+  'https://esm.sh/react-dom@19/client',
   'https://esm.sh/xlsx@0.18.5',
   'https://esm.sh/chart.js@4.4.2',
   'https://esm.sh/react-chartjs-2@5.2.0',
