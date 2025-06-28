@@ -1,0 +1,16 @@
+{
+  "short_name": "BOM Manager",
+  "name": "BOM & Costing Manager",
+  "description": "An application for managing Bill of Materials (BOM) and calculating raw material costs for plastic injection molded products.",
+  "icons": [
+    {
+      "src": "/vite.svg",
+      "type": "image/svg+xml",
+      "sizes": "192x192 512x512"
+    }
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#ffffff",
+  "background_color": "#f3f4f6"
+}

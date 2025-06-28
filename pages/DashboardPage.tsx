@@ -1,7 +1,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { useBom } from '../context/BomContext';
-import { View } from '../types';
+import { View, ProductionOrder } from '../types';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -26,94 +26,38 @@ ChartJS.register(
   Legend
 );
 
+type TimeFilter = 'today' | '7days' | '30days' | 'all';
 
 const DashboardPage = ({ setView }: { setView: React.Dispatch<React.SetStateAction<View>> }) => {
   const { state } = useBom();
   const { productionOrders, products } = state;
-
-  const [filterPreset, setFilterPreset] = useState<string>('currentYear');
-  const [startDate, setStartDate] = useState<Date>(new Date(new Date().getFullYear(), 0, 1));
-  const [endDate, setEndDate] = useState<Date>(new Date(new Date().getFullYear(), 11, 31));
+  const [timeFilter, setTimeFilter] = useState<TimeFilter>('all');
 
   const filteredOrders = useMemo(() => {
-    if (!startDate || !endDate) return [];
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    
+    let startDate: Date | null = null;
 
-    const effectiveStartDate = new Date(startDate);
-    effectiveStartDate.setHours(0, 0, 0, 0);
-
-    const effectiveEndDate = new Date(endDate);
-    effectiveEndDate.setHours(23, 59, 59, 999);
-
-    if (filterPreset === 'all') {
+    switch (timeFilter) {
+      case 'today':
+        startDate = today;
+        break;
+      case '7days':
+        startDate = new Date(today);
+        startDate.setDate(startDate.getDate() - 6);
+        break;
+      case '30days':
+        startDate = new Date(today);
+        startDate.setDate(startDate.getDate() - 29);
+        break;
+      case 'all':
+      default:
         return productionOrders;
     }
 
-    return productionOrders.filter(order => {
-        const orderDate = new Date(order.createdAt);
-        return orderDate >= effectiveStartDate && orderDate <= effectiveEndDate;
-    });
-  }, [productionOrders, startDate, endDate, filterPreset]);
-  
-  const handlePresetChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const preset = e.target.value;
-    setFilterPreset(preset);
-    const today = new Date();
-
-    switch (preset) {
-        case 'currentYear':
-            setStartDate(new Date(today.getFullYear(), 0, 1));
-            setEndDate(new Date(today.getFullYear(), 11, 31));
-            break;
-        case 'currentMonth':
-            setStartDate(new Date(today.getFullYear(), today.getMonth(), 1));
-            setEndDate(new Date(today.getFullYear(), today.getMonth() + 1, 0));
-            break;
-        case 'last30days':
-            const thirtyDaysAgo = new Date();
-            thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 29);
-            setStartDate(thirtyDaysAgo);
-            setEndDate(new Date());
-            break;
-        case 'last7days':
-            const sevenDaysAgo = new Date();
-            sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6);
-            setStartDate(sevenDaysAgo);
-            setEndDate(new Date());
-            break;
-        case 'all':
-             // Set a very early start date and today as end date
-            setStartDate(new Date('1970-01-01'));
-            setEndDate(new Date());
-            break;
-    }
-  };
-
-  const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>, isStart: boolean) => {
-    const dateValue = e.target.value;
-    if (!dateValue) return;
-
-    const [year, month, day] = dateValue.split('-').map(Number);
-    const localDate = new Date(year, month - 1, day);
-
-    if (isStart) {
-        setStartDate(localDate);
-        if (localDate > endDate) {
-            setEndDate(localDate);
-        }
-    } else {
-        setEndDate(localDate);
-    }
-    setFilterPreset('custom');
-  };
-
-  const formatDateForInput = (date: Date | null): string => {
-    if (!date) return '';
-    const d = new Date(date);
-    const year = d.getFullYear();
-    const month = String(d.getMonth() + 1).padStart(2, '0');
-    const day = String(d.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
-  };
+    return productionOrders.filter(order => new Date(order.createdAt) >= startDate!);
+  }, [productionOrders, timeFilter]);
 
   const stats = useMemo(() => {
     let totalRevenue = 0;
@@ -201,51 +145,29 @@ const DashboardPage = ({ setView }: { setView: React.Dispatch<React.SetStateActi
   
   return (
     <div className="container mx-auto">
-        <div className="flex flex-wrap justify-between items-center mb-6 gap-4">
+        <div className="flex justify-between items-center mb-6">
             <h1 className="text-2xl font-bold text-gray-800">สรุปภาพรวม (Dashboard)</h1>
-            <div className="flex flex-wrap items-center gap-2 md:gap-4 bg-gray-100 p-2 rounded-lg">
-                <div className="flex items-center">
-                    <select
-                        id="filterPreset"
-                        value={filterPreset}
-                        onChange={handlePresetChange}
-                        className="h-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+            <div className="flex space-x-1 bg-gray-200 p-1 rounded-lg">
+                {(['today', '7days', '30days', 'all'] as TimeFilter[]).map(filter => (
+                    <button 
+                        key={filter}
+                        onClick={() => setTimeFilter(filter)}
+                        className={`px-3 py-1 text-sm font-medium rounded-md transition-colors ${
+                            timeFilter === filter ? 'bg-white text-blue-600 shadow' : 'text-gray-600 hover:bg-gray-300'
+                        }`}
                     >
-                        <option value="custom">กำหนดเอง</option>
-                        <option value="currentYear">ปีปัจจุบัน</option>
-                        <option value="currentMonth">เดือนปัจจุบัน</option>
-                        <option value="last30days">30 วันล่าสุด</option>
-                        <option value="last7days">7 วันล่าสุด</option>
-                        <option value="all">ทั้งหมด</option>
-                    </select>
-                </div>
-                <div className="flex items-center gap-2">
-                    <input
-                        type="date"
-                        value={formatDateForInput(startDate)}
-                        onChange={(e) => handleDateChange(e, true)}
-                        className="rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
-                    />
-                    <span className="text-gray-600">-</span>
-                    <input
-                        type="date"
-                        value={formatDateForInput(endDate)}
-                        onChange={(e) => handleDateChange(e, false)}
-                        min={formatDateForInput(startDate)}
-                        className="rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
-                    />
-                </div>
+                        {filter === 'today' && 'วันนี้'}
+                        {filter === '7days' && '7 วัน'}
+                        {filter === '30days' && '30 วัน'}
+                        {filter === 'all' && 'ทั้งหมด'}
+                    </button>
+                ))}
             </div>
         </div>
 
-        {productionOrders.length > 0 && filteredOrders.length === 0 ? (
-             <div className="text-center py-20 bg-white rounded-lg shadow">
-                <p className="text-lg text-gray-500">ไม่มีข้อมูลการผลิตในช่วงเวลาที่เลือก</p>
-                <p className="text-sm text-gray-400 mt-2">โปรดลองเลือกช่วงเวลาอื่น</p>
-            </div>
-        ) : productionOrders.length === 0 ? (
+        {filteredOrders.length === 0 ? (
             <div className="text-center py-20 bg-white rounded-lg shadow">
-                <p className="text-lg text-gray-500">ยังไม่มีข้อมูลการผลิต</p>
+                <p className="text-lg text-gray-500">ไม่มีข้อมูลการผลิตในช่วงเวลานี้</p>
                 <p className="text-sm text-gray-400 mt-2">ไปที่หน้า 'เครื่องคำนวณการผลิต' เพื่อสร้างและบันทึกแผนการผลิต</p>
                 <button
                     onClick={() => setView({type: 'calculator'})}
