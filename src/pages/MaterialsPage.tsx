@@ -1,10 +1,10 @@
 
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useBom } from '../context/BomContext';
 import { Material } from '../types';
 import Modal from '../components/Modal';
-import { PlusIcon, EditIcon, TrashIcon, SearchIcon } from '../components/icons';
+import { PlusIcon, EditIcon, TrashIcon, SearchIcon, ArrowUpIcon, ArrowDownIcon } from '../components/icons';
 
 const MaterialsPage = () => {
   const { state, dispatch } = useBom();
@@ -14,11 +14,40 @@ const MaterialsPage = () => {
   const [newId, setNewId] = useState('');
   const [pasteData, setPasteData] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
+  const [sortConfig, setSortConfig] = useState<{ key: keyof Material; direction: 'ascending' | 'descending' } | null>(null);
 
   const filteredMaterials = state.materials.filter(material =>
     material.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     material.id.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const sortedMaterials = useMemo(() => {
+    let sortableItems = [...filteredMaterials];
+    if (sortConfig !== null) {
+        sortableItems.sort((a, b) => {
+            const aValue = a[sortConfig.key];
+            const bValue = b[sortConfig.key];
+
+            let comparison = 0;
+            if (typeof aValue === 'string' && typeof bValue === 'string') {
+                comparison = aValue.localeCompare(bValue, 'th');
+            } else if (typeof aValue === 'number' && typeof bValue === 'number') {
+                comparison = aValue - bValue;
+            }
+            
+            return sortConfig.direction === 'ascending' ? comparison : -comparison;
+        });
+    }
+    return sortableItems;
+  }, [filteredMaterials, sortConfig]);
+
+  const requestSort = (key: keyof Material) => {
+    let direction: 'ascending' | 'descending' = 'ascending';
+    if (sortConfig?.key === key && sortConfig.direction === 'ascending') {
+      direction = 'descending';
+    }
+    setSortConfig({ key, direction });
+  };
 
   const handleOpenModal = (material: Material | null = null) => {
     setEditingMaterial(material);
@@ -96,6 +125,11 @@ const MaterialsPage = () => {
     }
   };
 
+  const getSortIndicator = (key: keyof Material) => {
+    if (!sortConfig || sortConfig.key !== key) return null;
+    return sortConfig.direction === 'ascending' ? <ArrowUpIcon className="h-4 w-4" /> : <ArrowDownIcon className="h-4 w-4" />;
+  };
+
   return (
     <div className="container mx-auto">
       <div className="flex justify-between items-center mb-4">
@@ -129,15 +163,35 @@ const MaterialsPage = () => {
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-2/5">ชื่อวัตถุดิบ</th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">หน่วยนับ</th>
-                <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">ราคาต่อหน่วย</th>
-                <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">จำนวนในสต็อก</th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-2/5">
+                  <button onClick={() => requestSort('name')} className="flex items-center space-x-1 group">
+                    <span className="group-hover:text-gray-900 transition-colors">ชื่อวัตถุดิบ</span>
+                    {getSortIndicator('name')}
+                  </button>
+                </th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <button onClick={() => requestSort('unit')} className="flex items-center space-x-1 group">
+                    <span className="group-hover:text-gray-900 transition-colors">หน่วยนับ</span>
+                    {getSortIndicator('unit')}
+                  </button>
+                </th>
+                <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                   <button onClick={() => requestSort('pricePerUnit')} className="flex items-center space-x-1 group ml-auto">
+                    <span className="group-hover:text-gray-900 transition-colors">ราคาต่อหน่วย</span>
+                    {getSortIndicator('pricePerUnit')}
+                  </button>
+                </th>
+                <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <button onClick={() => requestSort('stockQuantity')} className="flex items-center space-x-1 group ml-auto">
+                    <span className="group-hover:text-gray-900 transition-colors">จำนวนในสต็อก</span>
+                    {getSortIndicator('stockQuantity')}
+                  </button>
+                </th>
                 <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {filteredMaterials.map((material) => (
+              {sortedMaterials.map((material) => (
                 <tr key={material.id}>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
