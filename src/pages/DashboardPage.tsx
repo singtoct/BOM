@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo, useEffect } from 'react';
 import { useBom } from '../context/BomContext';
 import { View } from '../types';
@@ -147,12 +146,12 @@ const DashboardPage = ({ setView }: { setView: React.Dispatch<React.SetStateActi
     datasets: [{
         data: [Math.max(0, stats.totalProfit), stats.totalMaterialCost],
         backgroundColor: [
-            'rgba(22, 163, 74, 0.7)', // Green
-            'rgba(220, 38, 38, 0.7)' // Red
+            '#16a34a', // Green-600
+            '#ef4444'  // Red-500
         ],
         borderColor: [
-            'rgba(22, 163, 74, 1)',
-            'rgba(220, 38, 38, 1)'
+            '#16a34a',
+            '#ef4444'
         ],
         borderWidth: 1,
     }]
@@ -165,23 +164,38 @@ const DashboardPage = ({ setView }: { setView: React.Dispatch<React.SetStateActi
       legend: {
         display: false
       }
+    },
+    scales: {
+        y: {
+            beginAtZero: true
+        }
     }
   }), []);
 
   const doughnutChartOptions = useMemo(() => ({
     responsive: true,
-    maintainAspectRatio: false
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: 'top' as const,
+        labels: {
+          usePointStyle: true,
+          pointStyle: 'rect',
+          padding: 20,
+        }
+      }
+    }
   }), []);
   
   const StatCard = ({ title, value, format = 'number' }: {title: string, value: number, format?: 'number' | 'currency'}) => {
     const formattedValue = format === 'currency' 
-        ? value.toLocaleString('th-TH', { style: 'currency', currency: 'THB' })
-        : value.toLocaleString();
+        ? `฿${value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+        : value.toLocaleString('en-US');
     
     return (
-        <div className="bg-white p-4 rounded-lg shadow">
+        <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
             <h3 className="text-sm font-medium text-gray-500 truncate">{title}</h3>
-            <p className="mt-1 text-3xl font-semibold text-gray-900">{formattedValue}</p>
+            <p className="mt-1 text-3xl font-bold text-gray-800">{formattedValue}</p>
         </div>
     );
   };
@@ -192,11 +206,11 @@ const DashboardPage = ({ setView }: { setView: React.Dispatch<React.SetStateActi
     <div>
         <div className="flex flex-wrap justify-between items-center gap-4 mb-6">
             <h1 className="text-2xl font-bold text-gray-800">สรุปภาพรวม (Dashboard)</h1>
-            <div className="flex flex-wrap items-center gap-2 bg-gray-100 p-2 rounded-lg">
+            <div className="flex flex-wrap items-center gap-2 bg-white p-2 rounded-lg border border-gray-200 shadow-sm">
                 <select
                     value={filterPreset}
                     onChange={(e) => setFilterPreset(e.target.value)}
-                    className="bg-white border border-gray-300 text-gray-700 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 p-2"
+                    className="bg-white border border-gray-300 text-gray-700 text-sm rounded-md focus:ring-blue-500 focus:border-blue-500 p-2"
                 >
                     <option value="thisYear">ปีปัจจุบัน</option>
                     <option value="thisMonth">เดือนปัจจุบัน</option>
@@ -206,13 +220,12 @@ const DashboardPage = ({ setView }: { setView: React.Dispatch<React.SetStateActi
                 
                 <div className="relative">
                     <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                        <CalendarIcon className="w-5 h-5 text-gray-500" />
+                        <CalendarIcon className="w-4 h-4 text-gray-500" />
                     </div>
                     <input
                         type="date"
                         value={dateToInputString(startDate)}
                         onChange={(e) => {
-                            // Split date string to handle it as local time, avoiding timezone issues
                             const dateParts = e.target.value.split('-').map(p => parseInt(p, 10));
                             const newDate = new Date(dateParts[0], dateParts[1] - 1, dateParts[2]);
                             if(!isNaN(newDate.getTime())) {
@@ -220,13 +233,13 @@ const DashboardPage = ({ setView }: { setView: React.Dispatch<React.SetStateActi
                                 setFilterPreset('custom');
                             }
                         }}
-                        className="bg-white border border-gray-300 text-gray-700 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 p-2"
+                        className="bg-white border border-gray-300 text-gray-700 text-sm rounded-md focus:ring-blue-500 focus:border-blue-500 block w-full pl-9 p-2"
                     />
                 </div>
 
                 <div className="relative">
                     <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                        <CalendarIcon className="w-5 h-5 text-gray-500" />
+                        <CalendarIcon className="w-4 h-4 text-gray-500" />
                     </div>
                     <input
                         type="date"
@@ -239,19 +252,19 @@ const DashboardPage = ({ setView }: { setView: React.Dispatch<React.SetStateActi
                                 setFilterPreset('custom');
                             }
                         }}
-                        className="bg-white border border-gray-300 text-gray-700 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 p-2"
+                        className="bg-white border border-gray-300 text-gray-700 text-sm rounded-md focus:ring-blue-500 focus:border-blue-500 block w-full pl-9 p-2"
                     />
                 </div>
             </div>
         </div>
 
         {productionOrders.length > 0 && filteredOrders.length === 0 ? (
-            <div className="text-center py-20 bg-white rounded-lg shadow">
+            <div className="text-center py-20 bg-white rounded-lg shadow-sm border">
                 <p className="text-lg text-gray-500">ไม่มีข้อมูลการผลิตในช่วงเวลาที่เลือก</p>
                 <p className="text-sm text-gray-400 mt-2">กรุณาเลือกช่วงเวลาอื่น</p>
             </div>
         ) : productionOrders.length === 0 ? (
-             <div className="text-center py-20 bg-white rounded-lg shadow">
+             <div className="text-center py-20 bg-white rounded-lg shadow-sm border">
                 <p className="text-lg text-gray-500">ยังไม่มีข้อมูลการผลิต</p>
                 <p className="text-sm text-gray-400 mt-2">ไปที่หน้า 'เครื่องคำนวณการผลิต' เพื่อสร้างและบันทึกแผนการผลิต</p>
                 <button
@@ -273,7 +286,7 @@ const DashboardPage = ({ setView }: { setView: React.Dispatch<React.SetStateActi
                 </div>
 
                 <div className="mt-8 grid grid-cols-1 lg:grid-cols-5 gap-8">
-                    <div className="lg:col-span-3 bg-white p-6 rounded-lg shadow">
+                    <div className="lg:col-span-3 bg-white p-6 rounded-lg shadow-sm border">
                         <h3 className="text-lg font-semibold text-gray-800 mb-4">5 อันดับสินค้าที่ผลิตมากที่สุด</h3>
                         <div className="h-80">
                            <Bar 
@@ -282,7 +295,7 @@ const DashboardPage = ({ setView }: { setView: React.Dispatch<React.SetStateActi
                            />
                         </div>
                     </div>
-                    <div className="lg:col-span-2 bg-white p-6 rounded-lg shadow">
+                    <div className="lg:col-span-2 bg-white p-6 rounded-lg shadow-sm border">
                         <h3 className="text-lg font-semibold text-gray-800 mb-4">สัดส่วนกำไรและต้นทุน</h3>
                          <div className="h-80">
                            <Doughnut
