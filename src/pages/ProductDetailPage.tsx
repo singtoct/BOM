@@ -1,6 +1,5 @@
 
 
-
 import React, { useState, useMemo } from 'react';
 import { useBom } from '../context/BomContext';
 import { View, BomComponent, BomComponentWithDetails, Product } from '../types';
@@ -173,7 +172,7 @@ const ProductDetailPage = ({ productId, setView }: ProductDetailPageProps) => {
   };
 
   return (
-    <div className="container mx-auto">
+    <div>
       <button onClick={() => setView({type: 'products'})} className="text-blue-600 hover:underline mb-4 inline-block">&larr; กลับไปหน้ารายการสินค้า</button>
       
       <div className="bg-white shadow-lg rounded-lg p-6 mb-6">

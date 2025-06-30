@@ -131,7 +131,7 @@ const MaterialsPage = () => {
   };
 
   return (
-    <div className="container mx-auto">
+    <div>
       <div className="flex justify-between items-center mb-4">
         <h1 className="text-2xl font-bold text-gray-800">จัดการวัตถุดิบ (Materials)</h1>
         <button

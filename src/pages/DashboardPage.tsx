@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo, useEffect } from 'react';
 import { useBom } from '../context/BomContext';
 import { View } from '../types';
@@ -188,7 +189,7 @@ const DashboardPage = ({ setView }: { setView: React.Dispatch<React.SetStateActi
   const dateToInputString = (date: Date) => date.toISOString().split('T')[0];
   
   return (
-    <div className="container mx-auto">
+    <div>
         <div className="flex flex-wrap justify-between items-center gap-4 mb-6">
             <h1 className="text-2xl font-bold text-gray-800">สรุปภาพรวม (Dashboard)</h1>
             <div className="flex flex-wrap items-center gap-2 bg-gray-100 p-2 rounded-lg">

@@ -1,71 +1,20 @@
 
 import React from 'react';
-import { View } from '../types';
-import { BoxIcon, CalculatorIcon, ChartBarIcon, TruckIcon, SendIcon } from './icons';
+import { MenuIcon } from './icons';
 
-interface HeaderProps {
-  setView: React.Dispatch<React.SetStateAction<View>>;
-}
-
-const Header = ({ setView }: HeaderProps) => {
+const Header = () => {
   return (
-    <header className="bg-white shadow-md">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-auto min-h-16 py-2">
-          <div className="flex items-center">
-             <div className="flex-shrink-0 text-blue-600">
-                <BoxIcon className="h-8 w-8" />
-             </div>
-            <div className="hidden md:block">
-              <div className="ml-10 flex items-baseline flex-wrap gap-x-4 gap-y-2">
-                 <button
-                  onClick={() => setView({ type: 'dashboard' })}
-                  className="text-gray-600 hover:bg-gray-100 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium flex items-center"
-                >
-                  <ChartBarIcon className="h-5 w-5 mr-2" />
-                  <span>แดชบอร์ด</span>
-                </button>
-                 <button
-                  onClick={() => setView({ type: 'receipt-report' })}
-                  className="text-gray-600 hover:bg-gray-100 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium flex items-center"
-                >
-                  <TruckIcon className="h-5 w-5 mr-2" />
-                  <span>รายงานรับเข้า</span>
-                </button>
-                 <button
-                  onClick={() => setView({ type: 'dispatch' })}
-                  className="text-gray-600 hover:bg-gray-100 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium flex items-center"
-                >
-                  <SendIcon className="h-5 w-5 mr-2" />
-                  <span>ส่งออกสินค้า</span>
-                </button>
-                <button
-                  onClick={() => setView({ type: 'products' })}
-                  className="text-gray-600 hover:bg-gray-100 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
-                >
-                  สินค้า (Products)
-                </button>
-                <button
-                  onClick={() => setView({ type: 'materials' })}
-                  className="text-gray-600 hover:bg-gray-100 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
-                >
-                  วัตถุดิบ (Materials)
-                </button>
-                <button
-                  onClick={() => setView({ type: 'calculator' })}
-                  className="text-gray-600 hover:bg-gray-100 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium flex items-center"
-                >
-                  <CalculatorIcon className="h-5 w-5 mr-2" />
-                  <span>เครื่องคำนวณการผลิต</span>
-                </button>
-              </div>
-            </div>
-          </div>
-           <div className="flex-shrink-0 ml-4">
-             <h1 className="text-xl font-bold text-gray-800 text-right">BOM & Costing Manager</h1>
-           </div>
-        </div>
+    <header className="bg-white shadow-sm p-4 flex justify-between items-center flex-shrink-0">
+      {/* Left side: Hamburger menu for mobile */}
+      <div className="flex items-center">
+        <button className="text-gray-500 focus:outline-none lg:hidden">
+            <MenuIcon className="h-6 w-6" />
+        </button>
+         <h2 className="text-lg text-gray-700 ml-2">ยินดีต้อนรับสู่ระบบ : อภิสิทธิ์ หรืออรุณ</h2>
       </div>
+      
+      {/* Right side can contain user menu, notifications, etc. */}
+      <div></div>
     </header>
   );
 };

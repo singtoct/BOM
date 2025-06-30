@@ -396,7 +396,7 @@ const DispatchPage = ({ setView }: { setView: React.Dispatch<React.SetStateActio
   const [activeTab, setActiveTab] = useState<'create' | 'history'>('create');
 
   return (
-    <div className="container mx-auto">
+    <div>
         <h1 className="text-2xl font-bold text-gray-800 mb-4 flex items-center"><SendIcon className="h-7 w-7 mr-3 text-gray-700"/>ส่งออกสินค้า</h1>
       <div className="flex border-b border-gray-200 mb-6">
         <button

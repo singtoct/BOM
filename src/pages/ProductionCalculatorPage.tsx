@@ -172,7 +172,7 @@ const ProductionCalculatorPage = () => {
 
 
   return (
-    <div className="container mx-auto">
+    <div>
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-gray-800 flex items-center">
             <CalculatorIcon className="h-7 w-7 mr-3 text-gray-700"/>

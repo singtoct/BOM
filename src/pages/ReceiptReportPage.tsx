@@ -197,7 +197,7 @@ const ReceiptReportPage = () => {
   const dateToInputString = (date: Date) => date.toISOString().split('T')[0];
 
   return (
-    <div className="container mx-auto">
+    <div>
       <div className="flex flex-wrap justify-between items-center gap-4 mb-6">
         <h1 className="text-2xl font-bold text-gray-800 flex items-center"><TruckIcon className="h-7 w-7 mr-3 text-gray-700"/> รายงานการรับเข้า</h1>
          <div className="flex flex-wrap items-center gap-2 bg-gray-100 p-2 rounded-lg">
