@@ -1,7 +1,7 @@
 
 import React, { useState, useMemo, useEffect } from 'react';
 import { useBom } from '../context/BomContext';
-import { View, DispatchOrderItem, Product } from '../types';
+import { View, DispatchOrderItem, Product, DispatchOrder } from '../types';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -28,7 +28,7 @@ const CreateDispatchOrder = ({ setActiveTab }: { setActiveTab: (tab: 'create' | 
     const [quantityToAdd, setQuantityToAdd] = useState(1);
     const [poRefToAdd, setPoRefToAdd] = useState('');
 
-    const sortedProducts = useMemo(() => [...products].sort((a,b) => a.name.localeCompare(b.name)), [products]);
+    const sortedProducts = useMemo(() => [...products].sort((a,b) => a.name.localeCompare(b.name, 'th')), [products]);
 
     const handleAddItem = () => {
         if (!productToAdd || quantityToAdd <= 0) {
@@ -37,7 +37,7 @@ const CreateDispatchOrder = ({ setActiveTab }: { setActiveTab: (tab: 'create' | 
         }
         
         // Check if item already exists to update quantity, or add new
-        const existingItemIndex = currentItems.findIndex(item => item.productId === productToAdd);
+        const existingItemIndex = currentItems.findIndex(item => item.productId === productToAdd && item.productionOrderRef === poRefToAdd);
         
         if(existingItemIndex > -1) {
             const updatedItems = [...currentItems];
@@ -53,8 +53,8 @@ const CreateDispatchOrder = ({ setActiveTab }: { setActiveTab: (tab: 'create' | 
         setPoRefToAdd('');
     };
 
-    const handleRemoveItem = (productId: string) => {
-        setCurrentItems(prev => prev.filter(item => item.productId !== productId));
+    const handleRemoveItem = (productId: string, ref: string) => {
+        setCurrentItems(prev => prev.filter(item => !(item.productId === productId && item.productionOrderRef === ref)));
     };
 
     const totalValue = useMemo(() => {
@@ -122,8 +122,8 @@ const CreateDispatchOrder = ({ setActiveTab }: { setActiveTab: (tab: 'create' | 
                              <input type="number" id="quantity" value={quantityToAdd} onChange={e => setQuantityToAdd(parseInt(e.target.value, 10) || 1)} min="1" className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm sm:text-sm"/>
                          </div>
                         <div>
-                             <label htmlFor="poRef" className="block text-xs font-medium text-gray-600">อ้างอิง PO (ถ้ามี)</label>
-                             <input type="text" id="poRef" value={poRefToAdd} onChange={e => setPoRefToAdd(e.target.value)} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm sm:text-sm"/>
+                             <label htmlFor="poRef" className="block text-xs font-medium text-gray-600">อ้างอิง PO</label>
+                             <input type="text" id="poRef" value={poRefToAdd} onChange={e => setPoRefToAdd(e.target.value)} placeholder="เลขที่สั่งผลิต" className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm sm:text-sm"/>
                          </div>
                          <div className="md:col-span-4 text-right">
                              <button onClick={handleAddItem} className="inline-flex items-center bg-blue-600 text-white px-4 py-2 rounded-lg shadow hover:bg-blue-700 transition-colors">
@@ -139,16 +139,16 @@ const CreateDispatchOrder = ({ setActiveTab }: { setActiveTab: (tab: 'create' | 
             <div className="bg-white p-6 rounded-lg shadow-md">
                  <h2 className="text-xl font-semibold text-gray-800 mb-4">สรุปรายการ</h2>
                  <div className="space-y-2 max-h-60 overflow-y-auto pr-2">
-                     {currentItems.length > 0 ? currentItems.map(item => {
+                     {currentItems.length > 0 ? currentItems.map((item, idx) => {
                          const product = products.find(p => p.id === item.productId);
                          if (!product) return null;
                          return (
-                            <div key={item.productId} className="flex justify-between items-center p-2 bg-gray-50 rounded-md">
+                            <div key={`${item.productId}-${idx}`} className="flex justify-between items-center p-2 bg-gray-50 rounded-md">
                                 <div>
                                     <p className="font-medium text-sm text-gray-800">{product.name}</p>
                                     <p className="text-xs text-gray-500">{item.quantity} ชิ้น {item.productionOrderRef ? `(Ref: ${item.productionOrderRef})` : ''}</p>
                                 </div>
-                                <button onClick={() => handleRemoveItem(item.productId)} className="text-red-500 hover:text-red-700 p-1 rounded-full hover:bg-red-100">
+                                <button onClick={() => handleRemoveItem(item.productId, item.productionOrderRef)} className="text-red-500 hover:text-red-700 p-1 rounded-full hover:bg-red-100">
                                     <TrashIcon className="h-4 w-4" />
                                 </button>
                             </div>
@@ -205,11 +205,12 @@ type ReportRow = DispatchOrderItem & {
     productName: string;
     productImage: string;
     value: number;
+    dispatchId: string;
 };
 
 const DispatchHistory = () => {
     const { state } = useBom();
-    const { dispatchOrders, products } = state;
+    const { dispatchOrders, products, productionOrders } = state;
     
     const [filterPreset, setFilterPreset] = useState('thisYear');
     const [startDate, setStartDate] = useState<Date>(() => getDatesForPreset('thisYear').startDate);
@@ -240,13 +241,16 @@ const DispatchHistory = () => {
         const flattenedData: ReportRow[] = filteredOrders.flatMap(order => 
             order.items.map(item => {
                 const product = products.find(p => p.id === item.productId);
+                const productionOrder = productionOrders.find(po => po.id === item.productionOrderRef);
                 return {
                     ...item,
+                    dispatchId: order.id,
                     date: order.createdAt,
                     destination: order.destination,
                     productName: product?.name || 'N/A',
                     productImage: product?.imageUrl || '',
-                    value: item.quantity * (product?.sellingPrice || 0)
+                    value: item.quantity * (product?.sellingPrice || 0),
+                    productionDate: productionOrder ? new Date(productionOrder.createdAt).toLocaleDateString('th-TH') : '-'
                 }
             })
         );
@@ -269,7 +273,7 @@ const DispatchHistory = () => {
             });
         }
         return flattenedData;
-    }, [dispatchOrders, products, startDate, endDate, sortConfig]);
+    }, [dispatchOrders, products, productionOrders, startDate, endDate, sortConfig]);
 
     const chartData = useMemo(() => {
         const dataByDestination: Record<string, number> = {};
@@ -277,7 +281,7 @@ const DispatchHistory = () => {
             dataByDestination[item.destination] = (dataByDestination[item.destination] || 0) + item.value;
         });
 
-        const sortedDestinations = Object.entries(dataByDestination).sort((a,b) => b[1] - a[1]);
+        const sortedDestinations = Object.entries(dataByDestination).sort((a,b) => b[1] - a[1]).slice(0, 10); // Top 10
         
         return {
             labels: sortedDestinations.map(d => d[0]),
@@ -336,7 +340,7 @@ const DispatchHistory = () => {
             ) : (
             <>
                 <div className="bg-white p-6 rounded-lg shadow mb-8">
-                    <h3 className="text-lg font-semibold text-gray-800 mb-4">สรุปมูลค่าส่งออกตามปลายทาง</h3>
+                    <h3 className="text-lg font-semibold text-gray-800 mb-4">สรุปมูลค่าส่งออกตามปลายทาง (Top 10)</h3>
                     <div className="h-80">
                         <Bar options={{ responsive: true, maintainAspectRatio: false }} data={chartData} />
                     </div>
@@ -346,17 +350,18 @@ const DispatchHistory = () => {
                         <table className="min-w-full divide-y divide-gray-200">
                              <thead className="bg-gray-50">
                                 <tr>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"><button onClick={() => requestSort('date')} className="flex items-center space-x-1 group"><span className="group-hover:text-gray-900">วันที่</span>{getSortIndicator('date')}</button></th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"><button onClick={() => requestSort('date')} className="flex items-center space-x-1 group"><span className="group-hover:text-gray-900">วันที่ส่ง</span>{getSortIndicator('date')}</button></th>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"><button onClick={() => requestSort('destination')} className="flex items-center space-x-1 group"><span className="group-hover:text-gray-900">ปลายทาง</span>{getSortIndicator('destination')}</button></th>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"><button onClick={() => requestSort('productName')} className="flex items-center space-x-1 group"><span className="group-hover:text-gray-900">สินค้า</span>{getSortIndicator('productName')}</button></th>
                                     <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"><button onClick={() => requestSort('quantity')} className="flex items-center space-x-1 group ml-auto"><span className="group-hover:text-gray-900">จำนวน</span>{getSortIndicator('quantity')}</button></th>
                                     <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"><button onClick={() => requestSort('value')} className="flex items-center space-x-1 group ml-auto"><span className="group-hover:text-gray-900">มูลค่า</span>{getSortIndicator('value')}</button></th>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">อ้างอิง PO</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">วันที่ผลิต</th>
                                 </tr>
                              </thead>
                              <tbody className="bg-white divide-y divide-gray-200">
                                  {reportData.map((item, index) => (
-                                     <tr key={`${item.productId}-${item.date}-${index}`}>
+                                     <tr key={`${item.dispatchId}-${item.productId}-${index}`}>
                                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{new Date(item.date).toLocaleDateString('th-TH')}</td>
                                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800 font-medium">{item.destination}</td>
                                          <td className="px-6 py-4 whitespace-nowrap">
@@ -373,6 +378,7 @@ const DispatchHistory = () => {
                                          <td className="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-700">{item.quantity.toLocaleString()} ชิ้น</td>
                                          <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-semibold text-gray-800">{item.value.toLocaleString('th-TH', { style: 'currency', currency: 'THB' })}</td>
                                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.productionOrderRef || '-'}</td>
+                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{(item as any).productionDate}</td>
                                      </tr>
                                  ))}
                              </tbody>
@@ -390,6 +396,7 @@ const DispatchPage = ({ setView }: { setView: React.Dispatch<React.SetStateActio
 
   return (
     <div className="container mx-auto">
+        <h1 className="text-2xl font-bold text-gray-800 mb-4 flex items-center"><SendIcon className="h-7 w-7 mr-3 text-gray-700"/>ส่งออกสินค้า</h1>
       <div className="flex border-b border-gray-200 mb-6">
         <button
           onClick={() => setActiveTab('create')}

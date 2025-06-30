@@ -1,39 +1,42 @@
-const CACHE_NAME = 'bom-app-cache-v9';
+const CACHE_NAME = 'bom-app-cache-v10';
 const FILES_TO_CACHE = [
   '/',
   '/index.html',
   '/manifest.json',
   '/vite.svg',
-  '/index.tsx',
+  '/src/index.tsx',
+  '/src/index.css',
   '/metadata.json',
-  '/types.ts',
-  '/App.tsx',
-  '/context/BomContext.tsx',
-  '/components/Header.tsx',
-  '/components/Modal.tsx',
-  '/components/icons.tsx',
-  '/pages/DashboardPage.tsx',
-  '/pages/MaterialsPage.tsx',
-  '/pages/ProductDetailPage.tsx',
-  '/pages/ProductsPage.tsx',
-  '/pages/ProductionCalculatorPage.tsx',
-  '/pages/ReceiptReportPage.tsx',
-  '/pages/DispatchPage.tsx',
-  'https://cdn.tailwindcss.com',
+  '/src/types.ts',
+  '/src/App.tsx',
+  '/src/context/BomContext.tsx',
+  '/src/components/Header.tsx',
+  '/src/components/Modal.tsx',
+  '/src/components/icons.tsx',
+  '/src/pages/DashboardPage.tsx',
+  '/src/pages/MaterialsPage.tsx',
+  '/src/pages/ProductDetailPage.tsx',
+  '/src/pages/ProductsPage.tsx',
+  '/src/pages/ProductionCalculatorPage.tsx',
+  '/src/pages/ReceiptReportPage.tsx',
+  '/src/pages/DispatchPage.tsx',
+  'https://esm.sh/react@^19.1.0',
+  'https://esm.sh/react-dom@^19.1.0/client',
+  'https://esm.sh/xlsx@^0.18.5',
+  'https://esm.sh/chart.js@^4.5.0',
+  'https://esm.sh/react-chartjs-2@^5.3.0',
   'https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap',
-  'https://esm.sh/react@19',
-  'https://esm.sh/react-dom@19',
-  'https://esm.sh/react-dom@19/client',
-  'https://esm.sh/xlsx@0.18.5',
-  'https://esm.sh/chart.js@4.4.2',
-  'https://esm.sh/react-chartjs-2@5.2.0',
 ];
 
 self.addEventListener('install', (evt) => {
   evt.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
       console.log('[ServiceWorker] Pre-caching offline resources');
-      return cache.addAll(FILES_TO_CACHE);
+      // Use addAll with a new Request object to bypass cache for the initial caching
+      const cachePromises = FILES_TO_CACHE.map((fileToCache) => {
+        return cache.add(new Request(fileToCache, {cache: 'reload'}));
+      });
+      return Promise.all(cachePromises);
     })
   );
   self.skipWaiting();
@@ -54,30 +57,25 @@ self.addEventListener('activate', (evt) => {
 });
 
 self.addEventListener('fetch', (evt) => {
-  if (evt.request.method !== 'GET' || !evt.request.url.startsWith('http')) {
-    return;
-  }
-  
-  // Cache-first strategy
+   if (evt.request.method !== 'GET') {
+      return;
+   }
+  // Strategy: Network falling back to cache
   evt.respondWith(
-    caches.match(evt.request).then((cachedResponse) => {
-      if (cachedResponse) {
-        return cachedResponse;
-      }
-      
-      return fetch(evt.request).then((networkResponse) => {
-        // We can only cache valid responses.
-        if (!networkResponse || networkResponse.status !== 200) {
-          return networkResponse;
+    fetch(evt.request).then((networkResponse) => {
+        // If the fetch is successful, clone the response and cache it.
+        if (networkResponse && networkResponse.status === 200) {
+            const responseToCache = networkResponse.clone();
+            caches.open(CACHE_NAME).then((cache) => {
+                cache.put(evt.request, responseToCache);
+            });
         }
-
-        const responseToCache = networkResponse.clone();
-        caches.open(CACHE_NAME).then((cache) => {
-          cache.put(evt.request, responseToCache);
-        });
-
         return networkResponse;
-      });
+    }).catch(() => {
+        // If the network fails, try to serve from cache.
+        return caches.match(evt.request).then((cachedResponse) => {
+            return cachedResponse || Response.error();
+        });
     })
   );
 });
