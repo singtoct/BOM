@@ -9,8 +9,6 @@ import ProductDetailPage from './pages/ProductDetailPage';
 import ProductionCalculatorPage from './pages/ProductionCalculatorPage';
 import DashboardPage from './pages/DashboardPage';
 import ReceiptReportPage from './pages/ReceiptReportPage';
-import DispatchPage from './pages/DispatchPage';
-import Sidebar from './components/Sidebar';
 
 const App = () => {
   const [view, setView] = useState<View>({ type: 'dashboard' });
@@ -29,23 +27,17 @@ const App = () => {
         return <ProductionCalculatorPage />;
       case 'receipt-report':
         return <ReceiptReportPage />;
-      case 'dispatch':
-        return <DispatchPage setView={setView} />;
       default:
         return <DashboardPage setView={setView} />;
     }
   };
 
   return (
-    <div className="flex h-screen bg-gray-100 text-gray-800 font-sans">
-      <Sidebar currentViewType={view.type} setView={setView} />
-      
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <Header />
-        <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100 p-4 sm:p-6 lg:p-8">
-          {renderView()}
-        </main>
-      </div>
+    <div className="min-h-screen bg-gray-50 text-gray-800">
+      <Header setView={setView} />
+      <main className="p-4 sm:p-6 lg:p-8">
+        {renderView()}
+      </main>
     </div>
   );
 };

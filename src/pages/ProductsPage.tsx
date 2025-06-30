@@ -160,7 +160,7 @@ const ProductsPage = ({ setView }: ProductsPageProps) => {
 
 
   return (
-    <div>
+    <div className="container mx-auto">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-gray-800">รายการสินค้า (Products)</h1>
         <button

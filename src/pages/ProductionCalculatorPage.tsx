@@ -1,9 +1,10 @@
 
 
+
 import React, { useState, useMemo } from 'react';
 import * as XLSX from 'xlsx';
 import { useBom } from '../context/BomContext';
-import { CalculatorIcon, FileDownIcon, SearchIcon } from '../components/icons';
+import { CalculatorIcon, FileDownIcon } from '../components/icons';
 import { ProductionOrderItem } from '../types';
 
 interface CalculationResult {
@@ -24,7 +25,6 @@ const ProductionCalculatorPage = () => {
   const [productionPlan, setProductionPlan] = useState<Record<string, number>>({});
   const [results, setResults] = useState<CalculationResult[] | null>(null);
   const [isPlanSaved, setIsPlanSaved] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
 
   const handlePlanChange = (productId: string, quantity: number) => {
     setProductionPlan(prev => ({
@@ -34,15 +34,6 @@ const ProductionCalculatorPage = () => {
     setResults(null); // Reset results when plan changes
     setIsPlanSaved(false);
   };
-
-  const filteredProducts = useMemo(() => {
-    return products
-      .filter(product =>
-        product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        product.id.toLowerCase().includes(searchTerm.toLowerCase())
-      )
-      .sort((a, b) => a.name.localeCompare(b.name, 'th'));
-  }, [products, searchTerm]);
 
   const handleCalculate = () => {
     const totalRequirements: Record<string, number> = {};
@@ -172,7 +163,7 @@ const ProductionCalculatorPage = () => {
 
 
   return (
-    <div>
+    <div className="container mx-auto">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-gray-800 flex items-center">
             <CalculatorIcon className="h-7 w-7 mr-3 text-gray-700"/>
@@ -184,24 +175,8 @@ const ProductionCalculatorPage = () => {
         {/* Production Plan Section */}
         <div className="bg-white p-6 rounded-lg shadow-md">
             <h2 className="text-xl font-semibold text-gray-800 mb-4">1. สร้างแผนการผลิต</h2>
-            
-            <div className="mb-4">
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <SearchIcon className="h-5 w-5 text-gray-400" />
-                </div>
-                <input
-                  type="text"
-                  placeholder="ค้นหาสินค้าด้วยชื่อ หรือ รหัส..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                />
-              </div>
-            </div>
-
-            <div className="space-y-3 max-h-[55vh] overflow-y-auto pr-2">
-                {filteredProducts.map(product => (
+            <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-2">
+                {products.sort((a,b) => a.name.localeCompare(b.name)).map(product => (
                     <div key={product.id} className="flex items-center justify-between bg-gray-50 p-3 rounded-lg">
                         <div className="flex items-center">
                            <img src={product.imageUrl} alt={product.name} className="w-12 h-12 rounded-md object-cover mr-4" />
