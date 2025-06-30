@@ -1,7 +1,7 @@
 
 
 import React, { createContext, useReducer, useContext, ReactNode, useEffect } from 'react';
-import { State, Action, Material, Product, BomComponent, ProductionOrder } from '../types';
+import { State, Action, Material, Product, BomComponent, ProductionOrder, GoodsReceipt } from '../types';
 
 const LOCAL_STORAGE_KEY = 'bom-app-data';
 
@@ -273,6 +273,7 @@ const initialState: State = {
   products: newProducts,
   bomComponents: newBomComponents,
   productionOrders: [],
+  goodsReceipts: [],
 };
 
 // --- Helper function for cost calculation ---
@@ -292,16 +293,48 @@ const calculateAllProductCosts = (products: Product[], bomComponents: BomCompone
 
 const bomReducer = (state: State, action: Action): State => {
   switch (action.type) {
-    case 'ADD_MATERIAL':
-      return { ...state, materials: [...state.materials, action.payload] };
+    case 'ADD_MATERIAL': {
+      const newMaterial = action.payload;
+      const newReceipts = [...state.goodsReceipts];
+      if (newMaterial.stockQuantity > 0) {
+        newReceipts.push({
+          id: `GR-${Date.now()}`,
+          receiptDate: new Date().toISOString(),
+          materialId: newMaterial.id,
+          quantity: newMaterial.stockQuantity,
+          notes: 'Initial Stock',
+        });
+      }
+      return {
+        ...state,
+        materials: [...state.materials, newMaterial],
+        goodsReceipts: newReceipts,
+      };
+    }
     
     case 'UPDATE_MATERIAL': {
+      const updatedMaterial = action.payload;
+      const oldMaterial = state.materials.find(m => m.id === updatedMaterial.id);
+      const newReceipts = [...state.goodsReceipts];
+
+      if (oldMaterial && updatedMaterial.stockQuantity > oldMaterial.stockQuantity) {
+          const quantityReceived = updatedMaterial.stockQuantity - oldMaterial.stockQuantity;
+          newReceipts.push({
+              id: `GR-${Date.now()}`,
+              receiptDate: new Date().toISOString(),
+              materialId: updatedMaterial.id,
+              quantity: quantityReceived,
+              notes: 'Stock Update'
+          });
+      }
+      
       const newMaterials = state.materials.map(m => m.id === action.payload.id ? action.payload : m);
       const updatedProducts = calculateAllProductCosts(state.products, state.bomComponents, newMaterials);
       return {
         ...state,
         materials: newMaterials,
         products: updatedProducts,
+        goodsReceipts: newReceipts
       };
     }
 
@@ -432,6 +465,7 @@ const initializer = (): State => {
             ...initialState, // Start with default structure
             ...storedState, // Override with stored data
             productionOrders: storedState.productionOrders || [], // Ensure productionOrders exists
+            goodsReceipts: storedState.goodsReceipts || [], // Ensure goodsReceipts exists
         };
     } else {
         stateToInitialize = initialState;

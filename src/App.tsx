@@ -8,6 +8,7 @@ import MaterialsPage from './pages/MaterialsPage';
 import ProductDetailPage from './pages/ProductDetailPage';
 import ProductionCalculatorPage from './pages/ProductionCalculatorPage';
 import DashboardPage from './pages/DashboardPage';
+import ReceiptReportPage from './pages/ReceiptReportPage';
 
 const App = () => {
   const [view, setView] = useState<View>({ type: 'dashboard' });
@@ -24,6 +25,8 @@ const App = () => {
         return <ProductDetailPage productId={view.productId} setView={setView} />;
       case 'calculator':
         return <ProductionCalculatorPage />;
+      case 'receipt-report':
+        return <ReceiptReportPage />;
       default:
         return <DashboardPage setView={setView} />;
     }

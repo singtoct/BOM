@@ -43,13 +43,22 @@ export interface ProductionOrder {
     totalPurchaseCost: number;
 }
 
+export interface GoodsReceipt {
+  id: string;
+  receiptDate: string; // ISO string date
+  materialId: string;
+  quantity: number;
+  notes: string;
+}
+
 
 export type View = 
   | { type: 'products' }
   | { type: 'materials' }
   | { type: 'product-detail'; productId: string }
   | { type: 'calculator' }
-  | { type: 'dashboard' };
+  | { type: 'dashboard' }
+  | { type: 'receipt-report' };
 
 export type Action =
   | { type: 'ADD_MATERIAL'; payload: Material }
@@ -70,4 +79,5 @@ export interface State {
     products: Product[];
     bomComponents: BomComponent[];
     productionOrders: ProductionOrder[];
+    goodsReceipts: GoodsReceipt[];
 }
