@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bom-app-cache-v10';
+const CACHE_NAME = 'bom-app-cache-v11';
 const FILES_TO_CACHE = [
   '/',
   '/index.html',
@@ -13,6 +13,7 @@ const FILES_TO_CACHE = [
   '/src/components/Header.tsx',
   '/src/components/Modal.tsx',
   '/src/components/icons.tsx',
+  '/src/components/Sidebar.tsx',
   '/src/pages/DashboardPage.tsx',
   '/src/pages/MaterialsPage.tsx',
   '/src/pages/ProductDetailPage.tsx',
