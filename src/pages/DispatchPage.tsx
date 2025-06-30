@@ -206,6 +206,7 @@ type ReportRow = DispatchOrderItem & {
     productImage: string;
     value: number;
     dispatchId: string;
+    productionDate: string;
 };
 
 const DispatchHistory = () => {
@@ -378,7 +379,7 @@ const DispatchHistory = () => {
                                          <td className="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-700">{item.quantity.toLocaleString()} ชิ้น</td>
                                          <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-semibold text-gray-800">{item.value.toLocaleString('th-TH', { style: 'currency', currency: 'THB' })}</td>
                                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.productionOrderRef || '-'}</td>
-                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{(item as any).productionDate}</td>
+                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.productionDate}</td>
                                      </tr>
                                  ))}
                              </tbody>
