@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { View } from '../types';
-import { BoxIcon, CalculatorIcon, ChartBarIcon, TruckIcon } from './icons';
+import { BoxIcon, CalculatorIcon, ChartBarIcon, TruckIcon, SendIcon } from './icons';
 
 interface HeaderProps {
   setView: React.Dispatch<React.SetStateAction<View>>;
@@ -32,6 +32,13 @@ const Header = ({ setView }: HeaderProps) => {
                 >
                   <TruckIcon className="h-5 w-5 mr-2" />
                   <span>รายงานรับเข้า</span>
+                </button>
+                 <button
+                  onClick={() => setView({ type: 'dispatch' })}
+                  className="text-gray-600 hover:bg-gray-100 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium flex items-center"
+                >
+                  <SendIcon className="h-5 w-5 mr-2" />
+                  <span>ส่งออกสินค้า</span>
                 </button>
                 <button
                   onClick={() => setView({ type: 'products' })}

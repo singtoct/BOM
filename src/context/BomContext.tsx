@@ -1,7 +1,7 @@
 
 
 import React, { createContext, useReducer, useContext, ReactNode, useEffect } from 'react';
-import { State, Action, Material, Product, BomComponent, ProductionOrder, GoodsReceipt } from '../types';
+import { State, Action, Material, Product, BomComponent, ProductionOrder, GoodsReceipt, DispatchOrder } from '../types';
 
 const LOCAL_STORAGE_KEY = 'bom-app-data';
 
@@ -274,6 +274,7 @@ const initialState: State = {
   bomComponents: newBomComponents,
   productionOrders: [],
   goodsReceipts: [],
+  dispatchOrders: [],
 };
 
 // --- Helper function for cost calculation ---
@@ -450,6 +451,15 @@ const bomReducer = (state: State, action: Action): State => {
       };
     }
 
+    case 'ADD_DISPATCH_ORDER': {
+        // This action just logs the dispatch. It does not affect inventory.
+        // Inventory is handled at production time.
+        return {
+            ...state,
+            dispatchOrders: [...state.dispatchOrders, action.payload],
+        };
+    }
+
     default:
       return state;
   }
@@ -464,8 +474,9 @@ const initializer = (): State => {
         stateToInitialize = {
             ...initialState, // Start with default structure
             ...storedState, // Override with stored data
-            productionOrders: storedState.productionOrders || [], // Ensure productionOrders exists
-            goodsReceipts: storedState.goodsReceipts || [], // Ensure goodsReceipts exists
+            productionOrders: storedState.productionOrders || [],
+            goodsReceipts: storedState.goodsReceipts || [],
+            dispatchOrders: storedState.dispatchOrders || [],
         };
     } else {
         stateToInitialize = initialState;

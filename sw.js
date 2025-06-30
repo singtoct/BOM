@@ -17,6 +17,8 @@ const FILES_TO_CACHE = [
   '/pages/ProductDetailPage.tsx',
   '/pages/ProductsPage.tsx',
   '/pages/ProductionCalculatorPage.tsx',
+  '/pages/ReceiptReportPage.tsx',
+  '/pages/DispatchPage.tsx',
   'https://cdn.tailwindcss.com',
   'https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap',
   'https://esm.sh/react@19',
