@@ -52,30 +52,25 @@ self.addEventListener('activate', (evt) => {
 });
 
 self.addEventListener('fetch', (evt) => {
-  if (evt.request.method !== 'GET' || !evt.request.url.startsWith('http')) {
-    return;
-  }
-  
-  // Cache-first strategy
+   if (evt.request.method !== 'GET') {
+      return;
+   }
+  // Strategy: Network falling back to cache
   evt.respondWith(
-    caches.match(evt.request).then((cachedResponse) => {
-      if (cachedResponse) {
-        return cachedResponse;
-      }
-      
-      return fetch(evt.request).then((networkResponse) => {
-        // We can only cache valid responses.
-        if (!networkResponse || networkResponse.status !== 200) {
-          return networkResponse;
+    fetch(evt.request).then((networkResponse) => {
+        // If the fetch is successful, clone the response and cache it.
+        if (networkResponse && networkResponse.status === 200) {
+            const responseToCache = networkResponse.clone();
+            caches.open(CACHE_NAME).then((cache) => {
+                cache.put(evt.request, responseToCache);
+            });
         }
-
-        const responseToCache = networkResponse.clone();
-        caches.open(CACHE_NAME).then((cache) => {
-          cache.put(evt.request, responseToCache);
-        });
-
         return networkResponse;
-      });
+    }).catch(() => {
+        // If the network fails, try to serve from cache.
+        return caches.match(evt.request).then((cachedResponse) => {
+            return cachedResponse || Response.error();
+        });
     })
   );
 });

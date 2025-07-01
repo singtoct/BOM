@@ -9,6 +9,7 @@ import ProductDetailPage from './pages/ProductDetailPage';
 import ProductionCalculatorPage from './pages/ProductionCalculatorPage';
 import DashboardPage from './pages/DashboardPage';
 import ReceiptReportPage from './pages/ReceiptReportPage';
+import DispatchPage from './pages/DispatchPage';
 
 const App = () => {
   const [view, setView] = useState<View>({ type: 'dashboard' });
@@ -27,6 +28,8 @@ const App = () => {
         return <ProductionCalculatorPage />;
       case 'receipt-report':
         return <ReceiptReportPage />;
+      case 'dispatch':
+        return <DispatchPage setView={setView} />;
       default:
         return <DashboardPage setView={setView} />;
     }

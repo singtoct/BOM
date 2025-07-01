@@ -51,6 +51,20 @@ export interface GoodsReceipt {
   notes: string;
 }
 
+export interface DispatchOrderItem {
+  productId: string;
+  quantity: number;
+  productionOrderRef: string; // User-provided reference
+}
+
+export interface DispatchOrder {
+  id: string;
+  createdAt: string; // ISO string date
+  destination: string;
+  items: DispatchOrderItem[];
+  totalValue: number; // Based on selling price
+}
+
 
 export type View = 
   | { type: 'products' }
@@ -58,7 +72,8 @@ export type View =
   | { type: 'product-detail'; productId: string }
   | { type: 'calculator' }
   | { type: 'dashboard' }
-  | { type: 'receipt-report' };
+  | { type: 'receipt-report' }
+  | { type: 'dispatch' };
 
 export type Action =
   | { type: 'ADD_MATERIAL'; payload: Material }
@@ -71,7 +86,8 @@ export type Action =
   | { type: 'UPDATE_BOM_COMPONENT'; payload: BomComponent }
   | { type: 'DELETE_BOM_COMPONENT'; payload: string } // id
   | { type: 'COPY_BOM_COMPONENTS'; payload: { sourceProductId: string; targetProductId: string } }
-  | { type: 'ADD_PRODUCTION_ORDER', payload: ProductionOrder };
+  | { type: 'ADD_PRODUCTION_ORDER', payload: ProductionOrder }
+  | { type: 'ADD_DISPATCH_ORDER', payload: DispatchOrder };
 
 
 export interface State {
@@ -80,4 +96,5 @@ export interface State {
     bomComponents: BomComponent[];
     productionOrders: ProductionOrder[];
     goodsReceipts: GoodsReceipt[];
+    dispatchOrders: DispatchOrder[];
 }
